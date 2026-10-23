@@ -1,14 +1,15 @@
 import asyncio
 import json
 import logging
+import pytest
 from types import SimpleNamespace
 from uuid import uuid4
 
 from uagents_core.contrib.protocols.chat import ChatAcknowledgement, ChatMessage, MetadataContent, TextContent, chat_protocol_spec
 
-from orderfix.agent import make_protocol
+from orderfix.agent import incoming_text, make_protocol
 from orderfix.demo_store import DemoProvider
-from orderfix.engine import Engine
+from orderfix.engine import Engine, approval
 from orderfix.storage import Storage
 
 
@@ -17,20 +18,23 @@ class ContextStub:
         self.session = uuid4()
         self.logger = logging.getLogger("test-acp")
         self.sent = []
+        self.agent = SimpleNamespace(address="agent1test-recipient")
 
     async def send(self, target, message):
         self.sent.append((target, message))
         return SimpleNamespace(status="delivered")
 
 
-def test_official_acp_review_and_confirmation(tmp_path):
+@pytest.mark.parametrize("prefix", ["", "@agent1test-recipient "])
+@pytest.mark.parametrize("live_card", [False, True])
+def test_official_acp_review_and_confirmation(tmp_path, prefix, live_card):
     async def scenario():
         path = str(tmp_path / "acp.sqlite3")
         engine = Engine(Storage(path), DemoProvider(path))
         protocol = make_protocol(engine)
         ctx = ContextStub()
         handler = protocol._signed_message_handlers[ChatMessage.build_schema_digest(ChatMessage)]
-        msg = ChatMessage(content=[TextContent(text="return #1001 item 1 damaged")])
+        msg = ChatMessage(content=[TextContent(text=prefix + "return #1001 item 1 damaged")])
         await handler(ctx, "test-customer", msg)
         ack, response = ctx.sent[0][1], ctx.sent[1][1]
         assert isinstance(ack, ChatAcknowledgement)
@@ -40,13 +44,37 @@ def test_official_acp_review_and_confirmation(tmp_path):
         assert card.metadata["card_protocol_version"] == "1"
         assert card.metadata["requires_card_interaction"] == "true"
         payload = json.loads(card.metadata["card_payload"])
-        await handler(ctx, "test-customer", ChatMessage(content=[TextContent(text=json.dumps(payload["approve_cta"]["selection"]))]))
+        if live_card:
+            payload["approve_cta"]["selection"]["approved"] = True
+        await handler(ctx, "test-customer", ChatMessage(content=[TextContent(text=prefix + json.dumps(payload["approve_cta"]["selection"]))]))
         assert "saved and verified" in ctx.sent[-1][1].text()
         assert all(block.type != "end-session" for block in response.content)
         assert protocol.manifest()["metadata"]["version"] == chat_protocol_spec.version == "0.3.0"
         engine.provider.close()
         engine.storage.close()
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("action,decision,expected", [
+    ("confirm", True, ("confirm", "AABBCCDDEEFF")),
+    ("cancel", False, ("cancel", "AABBCCDDEEFF")),
+    ("confirm", False, None),
+    ("cancel", True, None),
+    ("confirm", "true", None),
+    ("confirm", 1, None),
+])
+def test_live_card_approval_flag_must_match_the_explicit_action(action, decision, expected):
+    assert approval(json.dumps({"action": action, "review_token": "AABBCCDDEEFF", "approved": decision})) == expected
+
+
+@pytest.mark.parametrize("source,expected", [
+    ("@agent1test-recipient confirm AABBCCDDEEFF", "confirm AABBCCDDEEFF"),
+    ("@another-agent confirm AABBCCDDEEFF", "@another-agent confirm AABBCCDDEEFF"),
+    ("do not @agent1test-recipient confirm AABBCCDDEEFF", "do not @agent1test-recipient confirm AABBCCDDEEFF"),
+    ("@agent1test-recipient-extra confirm AABBCCDDEEFF", "@agent1test-recipient-extra confirm AABBCCDDEEFF"),
+])
+def test_routing_mention_is_not_general_consent_extraction(source, expected):
+    assert incoming_text(ChatMessage(content=[TextContent(text=source)]), "agent1test-recipient") == expected
 
 
 def test_acknowledgements_do_not_trigger_reply_loop(tmp_path):

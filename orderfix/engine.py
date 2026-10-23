@@ -22,9 +22,15 @@ def approval(text: str) -> tuple[str, str] | None:
     """Only explicit commands/card actions can authorize a stored immutable review."""
     try:
         value = json.loads(text)
-        if isinstance(value, dict) and set(value) <= {"action", "review_token"}:
+        if isinstance(value, dict) and set(value) <= {"action", "review_token", "approved"}:
             action, token = value.get("action"), str(value.get("review_token", "")).upper()
             if action in ("confirm", "cancel") and re.fullmatch(r"[A-F0-9]{12}", token):
+                # ASI:One review cards add this boolean to our selection payload.
+                # A conflicting or non-boolean decision must never grant consent.
+                if "approved" in value and (
+                    type(value["approved"]) is not bool or value["approved"] != (action == "confirm")
+                ):
+                    return None
                 return action, token
     except (ValueError, TypeError):
         pass

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">OrderFix</title>
+  <desc id="desc">A warm white shopping bag on a dark teal rounded square, with a coral check badge.</desc>
+  <rect width="512" height="512" rx="112" fill="#073F42"/>
+  <path d="M192 190V151C192 117.863 218.863 91 252 91S312 117.863 312 151V190" fill="none" stroke="#FFF9EE" stroke-width="24" stroke-linecap="round"/>
+  <path d="M153 167H351C363.179 167 373.375 176.171 374.655 188.282L392.416 356.282C394.545 376.421 378.756 394 358.505 394H145.495C125.244 394 109.455 376.421 111.584 356.282L129.345 188.282C130.625 176.171 140.821 167 153 167Z" fill="#FFF9EE"/>
+  <circle cx="192" cy="201" r="12" fill="#073F42"/>
+  <circle cx="312" cy="201" r="12" fill="#073F42"/>
+  <path d="M190 201V231C190 265.242 217.758 293 252 293S314 265.242 314 231V201" fill="none" stroke="#073F42" stroke-width="17" stroke-linecap="round"/>
+  <circle cx="353" cy="360" r="86" fill="#073F42"/>
+  <circle cx="353" cy="360" r="70" fill="#F38D73"/>
+  <path d="M321 361L343 383L387 338" fill="none" stroke="#FFF9EE" stroke-width="19" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
