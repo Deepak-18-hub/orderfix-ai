@@ -14,23 +14,25 @@ from .cards import review_card
 from .config import Settings, make_engine
 from .engine import Engine
 from .locales import tr
-from .profile import AVATAR_URL, DESCRIPTION
+from .profile import AVATAR_URL, DESCRIPTION, PUBLIC_HANDLE
 
 
 class Health(Model):
     status: str = "ok"
 
 
-def incoming_text(message: ChatMessage, address: str) -> str:
+def incoming_text(message: ChatMessage, address: str, handle: str | None = PUBLIC_HANDLE) -> str:
     """Remove only this recipient's leading ASI:One routing mention.
 
-    Live direct chats include @agent-address in the text sent over ACP, including
-    confirmation commands. Do not strip prose, other recipients or embedded text.
+    Live direct chats include @agent-address or our registered public @handle in
+    ACP text. Only exact configured recipients followed by whitespace may be
+    removed. Do not strip prose, other recipients or embedded text.
     """
     text = "\n".join(block.text for block in message.content if isinstance(block, TextContent)).strip()
-    prefix = "@" + address if address else ""
-    if prefix and text.startswith(prefix) and len(text) > len(prefix) and text[len(prefix)].isspace():
-        return text[len(prefix):].lstrip()
+    for recipient in (address, handle):
+        prefix = "@" + recipient if recipient else ""
+        if prefix and text.startswith(prefix) and len(text) > len(prefix) and text[len(prefix)].isspace():
+            return text[len(prefix):].lstrip()
     return text
 
 

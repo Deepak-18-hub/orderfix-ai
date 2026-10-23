@@ -25,9 +25,9 @@ class ContextStub:
         return SimpleNamespace(status="delivered")
 
 
-@pytest.mark.parametrize("prefix", ["", "@agent1test-recipient "])
-@pytest.mark.parametrize("live_card", [False, True])
-def test_official_acp_review_and_confirmation(tmp_path, prefix, live_card):
+@pytest.mark.parametrize("prefix", ["", "@agent1test-recipient ", "@orderfix-ai "])
+@pytest.mark.parametrize("confirmation", ["selection", "live_card", "manual"])
+def test_official_acp_review_and_confirmation(tmp_path, prefix, confirmation):
     async def scenario():
         path = str(tmp_path / "acp.sqlite3")
         engine = Engine(Storage(path), DemoProvider(path))
@@ -44,9 +44,11 @@ def test_official_acp_review_and_confirmation(tmp_path, prefix, live_card):
         assert card.metadata["card_protocol_version"] == "1"
         assert card.metadata["requires_card_interaction"] == "true"
         payload = json.loads(card.metadata["card_payload"])
-        if live_card:
+        if confirmation == "live_card":
             payload["approve_cta"]["selection"]["approved"] = True
-        await handler(ctx, "test-customer", ChatMessage(content=[TextContent(text=prefix + json.dumps(payload["approve_cta"]["selection"]))]))
+        selection = payload["approve_cta"]["selection"]
+        command = f"confirm {selection['review_token']}" if confirmation == "manual" else json.dumps(selection)
+        await handler(ctx, "test-customer", ChatMessage(content=[TextContent(text=prefix + command)]))
         assert "saved and verified" in ctx.sent[-1][1].text()
         assert all(block.type != "end-session" for block in response.content)
         assert protocol.manifest()["metadata"]["version"] == chat_protocol_spec.version == "0.3.0"
@@ -69,12 +71,30 @@ def test_live_card_approval_flag_must_match_the_explicit_action(action, decision
 
 @pytest.mark.parametrize("source,expected", [
     ("@agent1test-recipient confirm AABBCCDDEEFF", "confirm AABBCCDDEEFF"),
+    ("@orderfix-ai confirm AABBCCDDEEFF", "confirm AABBCCDDEEFF"),
+    ("@orderfix-ai\tconfirm 00BBCCDDEEFF", "confirm 00BBCCDDEEFF"),
     ("@another-agent confirm AABBCCDDEEFF", "@another-agent confirm AABBCCDDEEFF"),
     ("do not @agent1test-recipient confirm AABBCCDDEEFF", "do not @agent1test-recipient confirm AABBCCDDEEFF"),
+    ("do not @orderfix-ai confirm AABBCCDDEEFF", "do not @orderfix-ai confirm AABBCCDDEEFF"),
     ("@agent1test-recipient-extra confirm AABBCCDDEEFF", "@agent1test-recipient-extra confirm AABBCCDDEEFF"),
+    ("@orderfix-ai-extra confirm AABBCCDDEEFF", "@orderfix-ai-extra confirm AABBCCDDEEFF"),
+    ("@orderfix-ai.confirm AABBCCDDEEFF", "@orderfix-ai.confirm AABBCCDDEEFF"),
+    ("@orderfix-aiconfirm AABBCCDDEEFF", "@orderfix-aiconfirm AABBCCDDEEFF"),
+    ("@orderfix-ai", "@orderfix-ai"),
 ])
 def test_routing_mention_is_not_general_consent_extraction(source, expected):
     assert incoming_text(ChatMessage(content=[TextContent(text=source)]), "agent1test-recipient") == expected
+
+
+@pytest.mark.parametrize("source,handle,expected", [
+    ("@orderfix-ai confirm 00BBCCDDEEFF", "orderfix-ai", "confirm 00BBCCDDEEFF"),
+    ("@ confirm AABBCCDDEEFF", "orderfix-ai", "@ confirm AABBCCDDEEFF"),
+    ("@my-fork confirm AABBCCDDEEFF", "my-fork", "confirm AABBCCDDEEFF"),
+    ("@orderfix-ai confirm AABBCCDDEEFF", "my-fork", "@orderfix-ai confirm AABBCCDDEEFF"),
+    ("@orderfix-ai confirm AABBCCDDEEFF", None, "@orderfix-ai confirm AABBCCDDEEFF"),
+])
+def test_configured_handle_with_no_transport_address(source, handle, expected):
+    assert incoming_text(ChatMessage(content=[TextContent(text=source)]), "", handle) == expected
 
 
 def test_acknowledgements_do_not_trigger_reply_loop(tmp_path):
