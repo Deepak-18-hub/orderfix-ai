@@ -14,6 +14,7 @@ OrderFix helps shoppers look up an order, check whether an item can be returned,
 | --- | --- |
 | Local implementation | Complete; 159 automated tests passed on 23 October 2026 |
 | Scripted workflow | Verified locally in English, Hindi and Kannada |
+| GitHub Actions | [159 tests passed on Linux](https://github.com/Deepak-18-hub/orderfix-ai/actions/runs/39992502631) |
 | Public GitHub repository | [Deepak-18-hub/orderfix-ai](https://github.com/Deepak-18-hub/orderfix-ai) |
 | Agentverse profile | Pending registration/link verification |
 | ASI:One discovery and shared chat | Pending end-to-end verification and shared chat URL |
@@ -148,10 +149,12 @@ The invite is bound to one chat when redeemed and expires after two hours. It is
 
 ## Reliability and structure
 
-The tests cover policy boundaries, customer/session isolation, persistent state, duplicate transport delivery, concurrent quantities, review expiry, invalidated approvals, uncertain-result recovery, language flows, ACP messages and mocked Shopify failures. GitHub Actions is configured to run the test suite once the repository is published.
+The tests cover policy boundaries, customer/session isolation, persistent state, duplicate transport delivery, concurrent quantities, review expiry, invalidated approvals, uncertain-result recovery, language flows, ACP messages and mocked Shopify failures. GitHub Actions runs the same suite; the first published run passed on Linux.
 
 The agent is a single coordinator with explicit tools, durable workflow state and a deterministic policy engine. It does not claim multi-agent orchestration. See [architecture and action safety](docs/architecture.md) for the module graph and journal behavior.
 
 For judging, keep the process and database available. Mailbox delivery provides connectivity but does not host the running Python process. Moving to an always-on host requires persistent storage, the same private seed and environment settings, and a new end-to-end ASI:One check. The included Dockerfile packages the agent; no paid host, cloud account or recurring subscription is assumed. A persistent hosted deployment has not yet been verified.
 
 Potential monetization is a merchant subscription for after-sales request handling. Payments and the Payment Protocol are not implemented in this version.
+
+See [judging runtime and Docker deployment](docs/deployment.md) for the persistent-volume configuration and the remaining hosting validation steps.

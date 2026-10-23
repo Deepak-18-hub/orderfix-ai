@@ -1,0 +1,18 @@
+services:
+  orderfix:
+    build: .
+    restart: unless-stopped
+    init: true
+    environment:
+      AGENT_SEED: ${AGENT_SEED:?Run orderfix.setup_local first}
+      STORE_MODE: demo
+      ORDERFIX_DB: /app/data/orderfix.sqlite3
+      ENABLE_CARDS: "true"
+    volumes:
+      - orderfix_data:/app/data
+    # Mailbox delivery uses outbound HTTPS. No public port is required.
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+volumes:
+  orderfix_data:
