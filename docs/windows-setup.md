@@ -61,7 +61,7 @@ Run the tests and the three scripted demonstrations:
 
 The scripts print a final `VERIFIED` line after order lookup, eligibility, confirmed submission, saved-return readback, duplicate-message replay and status retrieval. They also demonstrate an expired return window. They use synthetic local data and automatically confirm the review only in demo mode.
 
-The recorded verification result is 159 passing automated tests plus successful English, Hindi and Kannada scripts. Your new execution is the current result; a stale transcript is not a substitute for running them.
+The recorded verification result is 190 passing automated tests plus successful English, Hindi and Kannada scripts. The English four-feature ASI:One workflow and English/Hindi card confirmations have also been checked live; see the [validation record](validation.md). Your new execution is the current local result.
 
 ## Try a manual conversation
 
@@ -100,9 +100,30 @@ Use the registration helper once instead of the legacy Inspector connection rout
 
 Mailbox delivery does not require a public endpoint or a temporary tunnel: incoming requests are queued by Agentverse and retrieved by the running agent. This behavior is described in the [current official SDK overview](https://docs.agentverse.ai/documentation/launch-agents/agentverse-sdk/overview). It does not make the laptop an always-on host.
 
-Card metadata is enabled by default. If the client does not render a review card, use the exact text confirmation displayed in the reply. A local terminal demonstration does not verify the remote card renderer.
+The agent serves a minimal local health endpoint to keep this SDK's mailbox runtime alive. The Inspector remains disabled. In a second PowerShell window, check the running process with:
 
-An always-on judging deployment is a separate, currently unverified step. The host must keep the process alive, retain the SQLite database across restarts and receive the private environment settings. No hosting account or paid plan is required to run the local tests, and a public tunnel is unnecessary for the mailbox configuration.
+```powershell
+Invoke-RestMethod -Uri 'http://127.0.0.1:8001/health'
+```
+
+The expected response has `status` equal to `ok`. Substitute your configured `AGENT_PORT` if it differs from `8001`. Do not expose this port publicly for mailbox delivery. A health response alone does not verify the ASI:One conversation.
+
+Card metadata is enabled by default. English and Hindi card rendering and click confirmation have been verified live. If a card is unavailable in your client, use the exact text confirmation displayed in the reply. ASI:One's optional `approved` decision is validated against the stored action; do not edit a card payload to change the reviewed item or quantity.
+
+The user has selected keeping the laptop online for judging. This is the intended current runtime; cloud hosting is deferred. No hosting account or paid plan is required for it, and a public tunnel is unnecessary for mailbox delivery.
+
+## Laptop judging start and restart checklist
+
+1. Connect the laptop to power and a stable network. Keep Windows awake during judging; check the configured sleep and lid-close behavior.
+2. Open PowerShell in the same OrderFix project folder. Preserve `.env`, its `AGENT_SEED`, and the existing `data` directory. Registration is already complete and does not need to be repeated for an ordinary restart.
+3. Ensure an old OrderFix process is not already running against this identity/database. Run one worker only.
+4. Start `.\.venv\Scripts\python.exe -m orderfix.agent`, or use `& $orderfixPython -m orderfix.agent` with the delivered environment defined above. Leave that terminal open.
+5. Check `http://127.0.0.1:8001/health` from a second terminal using the command above. Then send `return status #1001` in the existing ASI:One demo conversation and confirm that previously saved records remain available.
+6. After a process or laptop restart, repeat steps 2–5 using the same seed and database. A new ASI:One conversation gets a new synthetic customer, so use the existing demo conversation for persistence checks.
+
+Closing the running terminal or sleeping the laptop stops processing until the agent is restarted. Keep the public agent/profile and eventual shared-chat links available to judges, and describe the runtime as laptop-backed mailbox delivery.
+
+A future cloud move would require persistent disk and the same end-to-end checks. The [hosting assessment](validation.md#hosting-assessment) records optional candidates; no hosting account is currently required.
 
 ## Optional ASI1 configuration
 
@@ -119,7 +140,7 @@ Set `ASI1_API_KEY` privately in `.env` only after obtaining a key. Leave it empt
 | A return window is expired after several days | The original fulfillment timestamp is persistent; create a fresh demo session for another sample customer |
 | `AGENT_SEED` is missing or too short | Run `orderfix.setup_local`; if `.env` already exists, correct it privately rather than printing it |
 | Mailbox registration reports a missing account key | Save the Agentverse account key privately as `AGENTVERSE_API_KEY`, then run `orderfix.register --register` |
-| An older local agent reports that port 8001 is occupied | Stop the older instance; the mailbox-only build disables the legacy Inspector and does not need a public local server |
+| Port 8001 is occupied | Stop an earlier OrderFix instance or choose an unused `AGENT_PORT` in `.env`; the minimal local health server needs this port even though no public port is required |
 | A return may have succeeded but no success was verified | Send `status`; keep the original conversation and database so the journal can reconcile it |
 | Agentverse shows an agent but ASI:One cannot complete a request | Verify mailbox connection, process availability and the entire ACP conversation; registration alone is insufficient |
 | Async tests stall only in an automation sandbox | Windows event-loop startup uses a local socket pair; rerun in an ordinary permitted terminal or grant the automation the required local networking permission |

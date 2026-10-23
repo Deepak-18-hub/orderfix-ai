@@ -1,0 +1,34 @@
+1
+00:00:00,000 --> 00:00:20,000
+OrderFix: shopping support that takes action
+An agent available in ASI:One for order lookup, return eligibility, reviewed return requests, and status. The following scenes are actual captured screens.
+
+2
+00:00:20,000 --> 00:00:45,000
+1. Retrieve the order and available quantities
+OrderFix retrieves order #1001 from its persistent synthetic store. The reply clearly identifies demo data and shows the items available for return.
+
+3
+00:00:45,000 --> 00:01:20,000
+2. Check eligibility, then ask for explicit approval
+The interactive review shows the order, item, quantity, reason, and review token. Confirm request submits the reviewed action; Cancel discards the pending review.
+
+4
+00:01:20,000 --> 00:01:55,000
+3. Save the request and verify the result
+After confirmation, OrderFix saves a return request and verifies the recorded result. A request is not merchant approval or a refund; no money moves.
+
+5
+00:01:55,000 --> 00:02:20,000
+4. Read the recorded return status
+A follow-up in the same ASI:One conversation retrieves the persisted return reference and state. The outcome is backed by a store record, not only a chat response.
+
+6
+00:02:20,000 --> 00:02:40,000
+Hindi: the same recorded return, in the customer’s language
+A Hindi status request retrieves the same saved return reference. Authored transaction templates preserve identifiers and distinguish a request from merchant approval.
+
+7
+00:02:40,000 --> 00:03:00,000
+Kannada: explain why an ineligible return cannot proceed
+Order #1002 falls outside the sample 14-day return window. OrderFix explains the rejection in Kannada instead of creating an ineligible request.

@@ -33,6 +33,8 @@ The two SQLite table groups may share the same database file. The CLI uses a sep
 
 `agent.py` implements the official chat protocol types from `uagents-core==0.4.12` with `uagents==0.26.1`; the bundled protocol specification is ACP `0.3.0`. Every incoming chat message receives an acknowledgement. Responses contain text and, when enabled, structured review metadata.
 
+ASI:One may prepend the recipient's `@agent-address` or registered `@orderfix-ai` handle to delivered text, including confirmation commands. The adapter removes only a leading mention of its own exact configured address or public handle followed by whitespace. Embedded mentions, another recipient, lookalike prefixes and surrounding prose are preserved for normal input validation.
+
 The registration helper associates the stable agent identity with the operator's Agentverse account using a privately configured `AGENTVERSE_API_KEY`. Run `python -m orderfix.register --dry-run` to preview public settings, `python -m orderfix.register --register` to register, then `python -m orderfix.agent` to process messages. The agent uses mailbox delivery: the Python process retrieves queued messages, without a public HTTP endpoint or tunnel. This matches the [current Agentverse SDK overview](https://docs.agentverse.ai/documentation/launch-agents/agentverse-sdk/overview). Mailbox connectivity and application hosting are separate; the operator still needs a running process and network access.
 
 The owner key hashes the authenticated transport sender together with the transport session. Session state, message receipts, reviews and action records use that owner. A token from one conversation cannot confirm another conversation's review. Staying in the same ASI:One conversation is therefore part of the demo workflow.
@@ -78,7 +80,7 @@ Before a merchant write, the journal commits an operation ID and the approved re
 
 Verification checks the order ID, line ID, quantity, reason, operation ID and provider mode. A mismatching response is not reported as success. A database failure after the merchant action can be recovered from the earlier journal entry and provider readback.
 
-Review tokens expire after 15 minutes. Ordinary conversational sentences, negated confirmations and JSON carrying additional fields cannot authorize the action. Changing return details creates a new review; the prior unsubmitted token becomes invalid.
+Review tokens expire after 15 minutes. Ordinary conversational sentences, negated confirmations and JSON carrying unrecognized fields cannot authorize the action. Card JSON accepts `action`, `review_token` and an optional `approved` field used by ASI:One. If present, `approved` must be a real boolean matching `confirm` or `cancel`; numeric, string or conflicting values are rejected. Changing return details creates a new review; the prior unsubmitted token becomes invalid.
 
 ## Merchant adapters
 
@@ -100,12 +102,16 @@ The policy module currently implements the demonstration policy. A production de
 
 `locales.py` stores authored templates for English (`en`), Hindi (`hi`) and Kannada (`kn`). Transaction facts remain structured values; the application does not ask an LLM to invent or translate return IDs, amounts or policy outcomes. Product names retain the source store's wording.
 
-`cards.py` emits ACP `MetadataContent` with a review payload and confirmation/cancellation selections. Each selection refers to the same stored review token. Text confirmation remains available. Metadata construction is tested; actual ASI:One rendering must be recorded as a separate live validation result.
+`cards.py` emits ACP `MetadataContent` with a review payload and confirmation/cancellation selections. Each selection refers to the same stored review token. Text confirmation remains available. English and Hindi review cards have been rendered and confirmed successfully in live ASI:One; the [validation record](validation.md) distinguishes completed live checks from remaining language/card coverage.
 
 ## Operational scope
 
-The intended deployment runs one agent process against persistent local SQLite storage. A global engine lock serializes turns, with bounded handling time and a per-owner request limit. SQLite protects merchant writes independently. The implementation is not presented as a horizontally scaled service.
+The selected judging runtime runs one agent process on the user's laptop against persistent local SQLite storage; cloud hosting is deferred by choice. A global engine lock serializes turns, with bounded handling time and a per-owner request limit. SQLite protects merchant writes independently. The implementation is not presented as a horizontally scaled service.
+
+With the installed SDK, a mailbox-only process without REST handlers can exit after launching its mailbox poller. `agent.py` therefore provides an innocuous `GET /health` handler returning `{"status":"ok"}`. Its local server keeps the runtime active on `AGENT_PORT`, default `8001`. The legacy Inspector remains disabled. Mailbox delivery still needs no public endpoint or tunnel; the local health port need not be exposed outside the host. A healthy HTTP response confirms process availability, not Agentverse delivery or an ASI:One workflow.
 
 The private agent seed keeps the address stable. `.env`, databases, generated credentials and logs are ignored by Git. Audit events contain correlation identifiers and outcomes rather than full customer messages or secret API responses.
 
-Local verification recorded on 23 October 2026: **159 automated tests passed**, and scripted English, Hindi and Kannada flows completed. These checks cover application behavior and ACP handler contracts; they do not establish Agentverse discovery, ASI:One card rendering, live Shopify correctness or hosted uptime.
+Local verification recorded on 23 October 2026: **190 automated tests passed**, and scripted English, Hindi and Kannada flows completed. The English four-feature workflow and English/Hindi card confirmations have also been verified live in ASI:One. Current evidence and remaining checks are recorded in the [validation record](validation.md) and README status table. Live Shopify correctness and hosted uptime remain unverified.
+
+The current file-backed SQLite design expects a persistent process and disk. Agentverse's hosted runtime resets global variables between invocations and directs persistent state to its Agent Storage, so using that runtime would require an explicit storage/lifecycle adaptation rather than an unchanged upload. Supported imports also need review. [Hosted Agents](https://docs.agentverse.ai/documentation/create-agents/hosted-agents), [Allowed Imports](https://docs.agentverse.ai/documentation/advanced-usages/allowed-imports)

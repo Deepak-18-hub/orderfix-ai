@@ -12,18 +12,20 @@ OrderFix helps shoppers look up an order, check whether an item can be returned,
 <!-- DEPLOYMENT_STATUS: replace pending entries only after verifying each external result. -->
 | Item | Status |
 | --- | --- |
-| Local implementation | Complete; 159 automated tests passed on 23 October 2026 |
+| Local implementation | Complete; 190 automated tests passed on 23 October 2026 |
 | Scripted workflow | Verified locally in English, Hindi and Kannada |
-| GitHub Actions | [159 tests passed on Linux](https://github.com/Deepak-18-hub/orderfix-ai/actions/runs/39992502631) |
+| GitHub Actions | [Tested-source workflow passed for 3ecd73d](https://github.com/Deepak-18-hub/orderfix-ai/actions/runs/39999085198); local full-suite count is 190 |
 | Public GitHub repository | [Deepak-18-hub/orderfix-ai](https://github.com/Deepak-18-hub/orderfix-ai) |
-| Agentverse profile | Pending registration/link verification |
-| ASI:One discovery and shared chat | Pending end-to-end verification and shared chat URL |
-| ASI:One interactive card rendering | Metadata implemented and unit tested; live rendering pending |
+| Agentverse profile | [OrderFix profile](https://agentverse.ai/agents/details/agent1qdhv4kkryldes33rtzvpr6uznhdup5tdz9apfthxw7r7r8jv930ccrqspns/profile) registered with a custom avatar; observed Active and ASI:One Available |
+| ASI:One direct agent | [@orderfix-ai](https://asi1.ai/ai/agent1qdhv4kkryldes33rtzvpr6uznhdup5tdz9apfthxw7r7r8jv930ccrqspns); English lookup, eligibility, confirmed submission and status verified live |
+| ASI:One shared chat | [Verified complete workflow](https://asi1.ai/shared-chat/aae314b3-dd9a-423d-bce4-ebe4486b0d5d): lookup, submitted review card, saved request, matching status, Hindi status and Kannada policy rejection |
+| ASI:One interactive cards | English and Hindi review cards rendered; click confirmations produced verified requests |
+| Demo walkthrough | [Download the 3-minute MP4](assets/orderfix-demo.mp4) and [English captions](assets/orderfix-demo.srt); actual screenshots, 1080p |
 | Shopify development-store integration | Adapter and mocked tests included; not validated against a live store |
-| Hosted judging deployment | Pending; local process must remain running until deployed |
+| Judging runtime | Laptop mailbox runtime selected by the user; keep the computer, agent process and network online. Cloud hosting deferred |
 <!-- /DEPLOYMENT_STATUS -->
 
-A successful local CLI run does not prove Agentverse registration or ASI:One discoverability. Complete and verify the external links before submitting to Devpost.
+See the [validation record](docs/validation.md) and [submission packet](docs/submission.md) for verified evidence and copy-ready project details. The complete shared chat and a three-minute walkthrough using actual screenshots are available. A separate externally hosted video-embed URL has not been created, and the Devpost form has not been submitted. Judging will use the selected laptop mailbox runtime.
 
 ## What the agent does
 
@@ -112,11 +114,13 @@ The preview prints the public address and registration settings without exposing
 
 The agent uses `uagents==0.26.1`, `uagents-core==0.4.12`, and the bundled **ACP 0.3.0** specification. It acknowledges incoming chat messages, preserves the authenticated sender/session boundary, and publishes its protocol manifest. Mailbox mode is enabled.
 
+The process also serves a small `GET /health` endpoint on `AGENT_PORT` (default `8001`) to keep this SDK's runtime active. The legacy Inspector is disabled. The health endpoint does not need to be exposed publicly and is not a substitute for a successful mailbox conversation.
+
 The current Agentverse documentation confirms that mailbox agents retrieve queued messages without a publicly exposed endpoint, so this setup does not require a tunnel. Keep the process running and check the agent's Testing tab in Agentverse before testing ASI:One discovery. [Official mailbox guidance](https://docs.agentverse.ai/documentation/launch-agents/agentverse-sdk/overview)
 
 The registration helper replaces the legacy Inspector setup route. Preserve the seed, confirm the resulting agent belongs to the intended account, and verify the profile and mailbox connection. The exact public status belongs in the table above; a helper invocation or process startup alone is not proof of a complete ASI:One workflow.
 
-The profile description is in [AGENT_PROFILE.md](AGENT_PROFILE.md). For the final demo, complete lookup → review → explicit confirmation → status **inside one ASI:One conversation**, then save its shared chat URL and record the demo video. No custom frontend is required for that workflow. The CLI is only a development harness.
+The profile description is in [AGENT_PROFILE.md](AGENT_PROFILE.md). The [verified shared conversation](https://asi1.ai/shared-chat/aae314b3-dd9a-423d-bce4-ebe4486b0d5d) completes lookup → review → explicit confirmation → status **inside ASI:One**, without a custom frontend. The direct profile works, and the recipient picker finds the exact `@orderfix-ai` handle. Broad keyword recommendations or global-search ranking have not been tested. The CLI is only a development harness.
 
 ## Configuration
 
@@ -151,10 +155,14 @@ The invite is bound to one chat when redeemed and expires after two hours. It is
 
 The tests cover policy boundaries, customer/session isolation, persistent state, duplicate transport delivery, concurrent quantities, review expiry, invalidated approvals, uncertain-result recovery, language flows, ACP messages and mocked Shopify failures. GitHub Actions runs the same suite; the first published run passed on Linux.
 
+The current 190-test local suite also covers ASI:One's leading recipient address/public handle and optional `approved` boolean in review-card selections. Only this agent's exact leading routing mention is removed. Card approval must match the requested action as a real boolean; conflicting decisions, strings and numbers cannot authorize a return.
+
 The agent is a single coordinator with explicit tools, durable workflow state and a deterministic policy engine. It does not claim multi-agent orchestration. See [architecture and action safety](docs/architecture.md) for the module graph and journal behavior.
 
-For judging, keep the process and database available. Mailbox delivery provides connectivity but does not host the running Python process. Moving to an always-on host requires persistent storage, the same private seed and environment settings, and a new end-to-end ASI:One check. The included Dockerfile packages the agent; no paid host, cloud account or recurring subscription is assumed. A persistent hosted deployment has not yet been verified.
+For judging, the user has selected keeping the laptop online. Keep the process and database available; mailbox delivery provides connectivity but does not host Python. Follow the [laptop start/restart checklist](docs/windows-setup.md#laptop-judging-start-and-restart-checklist). Cloud hosting is deferred. A future move requires persistent storage, the same private seed and environment settings, and a new end-to-end ASI:One check. The included Dockerfile packages the agent; no cloud account or recurring subscription is required for the chosen runtime.
 
 Potential monetization is a merchant subscription for after-sales request handling. Payments and the Payment Protocol are not implemented in this version.
 
 See [judging runtime and Docker deployment](docs/deployment.md) for the persistent-volume configuration and the remaining hosting validation steps.
+
+For a future cloud move, the current SQLite build cannot be assumed to run unchanged in Agentverse's hosted editor. A verified Railway trial with a persistent volume is a possible separate host, subject to account eligibility and credit limits; no Railway service has been created. The [validation record's hosting assessment](docs/validation.md#hosting-assessment) records this optional research and official evidence.
