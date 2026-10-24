@@ -65,7 +65,6 @@ def test_exact_contextual_approval_does_not_supply_a_token(text):
     '{"action":"qf_approve","token":"x","approved":"true"}',
     '{"action":"qf_approve","token":"x","approved":1}',
     '{"action":"qf_approve","token":"x","approved":false}',
-    '{"action":"qf_back","token":"x","approved":true}',
     '{"action":"qf_select","token":"x","approved":false}',
     '{"action":"qf_approve","token":"x","amount_minor":1}',
     '{"action":"qf_approve","action":"qf_back","token":"x"}',
@@ -84,6 +83,11 @@ def test_parser_bounds_and_does_not_coerce_token():
     assert parse_action(json.dumps({"action": "qf_approve", "token": "AbCd_123-xyz"})) == {"action": "qf_approve", "token": "AbCd_123-xyz"}
     assert parse_action(json.dumps({"action": "qf_status"})) == {"action": "qf_status"}
     assert parse_action("back") == {"action": "qf_back"}
+
+
+@pytest.mark.parametrize("action", ["qf_select", "qf_status", "qf_back"])
+def test_read_only_or_exit_detail_click_cannot_become_approval(action):
+    assert parse_action(json.dumps({"action": action, "token": TOKEN, "approved": True})) == {"action": action, "token": TOKEN}
 
 
 @pytest.mark.parametrize(("text", "expected"), [

@@ -169,10 +169,10 @@ def parse_action(text: str) -> dict[str, Any] | None:
             return None
         if "approved" in value:
             approved = value["approved"]
-            # ASI:One also adds approved=true to carousel selection clicks.
-            # It acknowledges the selection only; qf_select never authorizes
-            # cancellation/refund, which still needs the case's review token.
-            if type(approved) is not bool or action not in {"qf_select", "qf_approve", "qf_back"} or approved != (action != "qf_back"):
+            # ASI adds approved=true to carousel/detail CTAs and false to
+            # review rejection. The action remains authoritative: selecting,
+            # reading status or going back never approves a financial write.
+            if type(approved) is not bool or (action != "qf_back" and not approved):
                 return None
         return {"action": action, **({"token": token} if token is not None else {})}
     natural = _normalized(clean).rstrip(".!").strip()
