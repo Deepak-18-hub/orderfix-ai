@@ -3,6 +3,22 @@
 ![tag:innovationlab](https://img.shields.io/badge/innovationlab-3D8BD3)
 ![tag:hackathon](https://img.shields.io/badge/hackathon-5F43F1)
 
+## QuickFix extension — pharmacy cancellation and refunds
+
+QuickFix adds a **post-purchase** workflow: select an existing pharmacy order, check cancellation eligibility, approve the exact cancellation/refund, and inspect pharmacy, refund and notification states separately. Its local peers use fictional pharmacy orders, a simulated payment ledger and captured emails. No real medicine is dispensed and no real money moves in this mode.
+
+The extension is opt-in with `QUICKFIX_ENABLED=true`; the default remains `false`. It can run under the existing OrderFix agent identity without changing `AGENT_SEED`. See [QuickFix setup](docs/quickfix-setup.md), [peer contract](docs/quickfix-contract.md), [gateway modes](docs/quickfix-gateway.md), [Med Guardian integration review](docs/medguardian-review.md) and [current submission checklist](docs/quickfix-submission.md).
+
+**Current readiness:** the teammate mail agent is being built. Connected Med Guardian pharmacy replies, a captured Razorpay test payment/refund and real email delivery have not been verified. Gateway credentials, an email account and real recipients have not been supplied. Captured email is a local artifact, not inbox delivery. A refund adapter is not ASI Payment Protocol checkout.
+
+Run `python -m orderfix.commerce.cli demo` for a bounded demonstration with real uAgents local messages, one simulated refund and two captured emails. A separate loopback check verifies signed envelopes. For laptop judging through the existing registered identity, the simulation launcher is `python -m orderfix.commerce.judge`; see the [setup and evidence limits](docs/quickfix-setup.md). Share the [versioned teammate contract](docs/quickfix-contract.md) with both teammates.
+
+**Local verification:** 405 automated tests passed. The [verification record](docs/quickfix-validation.md) separates local agent messages, mocked gateway tests, captured emails and outstanding external acceptance.
+
+**Evidence boundary:** the shared chat, video and deployment verification below belong to the original return-request workflow. They do not demonstrate QuickFix cancellation/refund or teammate-agent integration. A fresh complete ASI:One conversation and 3–5 minute video are required for this extension. The [current hackpack](https://www.fetch.ai/events/hackathons/fetch-a-thon-3/hackpack) requires submission through its ASI:One dashboard's **Project Submission Agent**.
+
+## Original OrderFix return-request workflow
+
 OrderFix helps shoppers look up an order, check whether an item can be returned, submit a return request after reviewing it, and retrieve its recorded status. The primary interaction is designed for an **ASI:One conversation**, using the **Agent Chat Protocol (ACP)**. English, Hindi and Kannada are supported.
 
 **The delivered default is a synthetic merchant demo with real local persistence.** Confirming a review creates a durable SQLite return record, reserves the returned quantity, and reads the saved record back before reporting success. No purchase, shipment or refund takes place.

@@ -36,7 +36,7 @@ def incoming_text(message: ChatMessage, address: str, handle: str | None = PUBLI
     return text
 
 
-def make_protocol(engine: Engine, cards: bool = True) -> Protocol:
+def make_protocol(engine: Engine, cards: bool = True, commerce=None) -> Protocol:
     protocol = Protocol(spec=chat_protocol_spec)
 
     @protocol.on_message(ChatMessage)
@@ -44,6 +44,12 @@ def make_protocol(engine: Engine, cards: bool = True) -> Protocol:
         await ctx.send(sender, ChatAcknowledgement(acknowledged_msg_id=message.msg_id))
         try:
             text = incoming_text(message, getattr(getattr(ctx, "agent", None), "address", ""))
+            if commerce is not None and commerce.handles(sender, str(ctx.session), text):
+                from .commerce.acp import message_for, record_delivery
+                view = await commerce.handle(sender, str(ctx.session), str(message.msg_id), text)
+                result = await ctx.send(sender, message_for(view, cards))
+                record_delivery(commerce, sender, ctx.session, view, result)
+                return
             reply = await engine.handle(sender, str(ctx.session), str(message.msg_id), text)
             if any(isinstance(block, ResourceContent) for block in message.content):
                 reply = reply.model_copy(update={"text": tr(reply.language, "image_text_only") + "\n" + reply.text})
@@ -68,11 +74,18 @@ def build_agent(settings: Settings | None = None) -> Agent:
     if len(settings.seed) < 32:
         raise ValueError("Run python -m orderfix.setup_local once to create a private stable AGENT_SEED")
     engine = make_engine(settings)
+    commerce = None
+    if os.getenv("QUICKFIX_ENABLED", "false").lower() == "true":
+        from .commerce.runtime import make_engine_from_env
+        commerce = make_engine_from_env()
     agent = Agent(name="OrderFix", seed=settings.seed, port=settings.port, mailbox=True,
         publish_agent_details=True, readme_path=str(Path(__file__).resolve().parents[1] / "AGENT_PROFILE.md"),
         description=DESCRIPTION, avatar_url=AVATAR_URL,
         store_message_history=False, enable_agent_inspector=False)
-    agent.include(make_protocol(engine, settings.cards), publish_manifest=True)
+    agent.include(make_protocol(engine, settings.cards, commerce), publish_manifest=True)
+    if commerce is not None:
+        from .commerce.acp import attach_worker
+        attach_worker(agent, commerce, settings.cards)
 
     # uAgents 0.26.1's mailbox run() launches its poller and returns. With no
     # REST handlers, Agent.run_async() drops its server task and immediately
@@ -91,6 +104,9 @@ def build_agent(settings: Settings | None = None) -> Agent:
     async def shutdown(ctx: Context):
         engine.provider.close()
         engine.storage.close()
+        if commerce is not None:
+            commerce.gateway.close()
+            commerce.store.close()
 
     return agent
 

@@ -24,7 +24,7 @@ from uagents_core.utils.registration import (
     RegistrationRequestCredentials,
     register_agent,
 )
-from .profile import AVATAR_URL, DESCRIPTION
+from .profile import AVATAR_URL, DESCRIPTION, PUBLIC_HANDLE
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PROFILE_PATH = PROJECT_ROOT / "AGENT_PROFILE.md"
@@ -35,11 +35,12 @@ def registration_request(readme: str) -> AgentverseRegistrationRequest:
     digest = ProtocolSpecification.compute_digest(chat_protocol_spec.manifest())
     return AgentverseRegistrationRequest(
         name="OrderFix", endpoint=AgentverseConfig().mailbox_endpoint,
+        handle=PUBLIC_HANDLE,
         type="mailbox", protocols=[digest], active=True,
         # The SDK's default True replaces endpoints with the proxy endpoint.
         track_interactions=False, description=DESCRIPTION, readme=readme, avatar_url=AVATAR_URL,
-        starter_prompts=["order #1001", "return #1001 item 1 quantity 1 damaged",
-                         "return status #1001"],
+        starter_prompts=["quickfix show my orders", "quickfix मेरे ऑर्डर दिखाओ",
+                         "quickfix ನನ್ನ ಆರ್ಡರ್ ತೋರಿಸಿ"],
         metadata={"is_public": "True", "categories": ["shopping", "customer-support"],
                   "languages": ["English", "Hindi", "Kannada"]},
     )
