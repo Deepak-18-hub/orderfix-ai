@@ -1,5 +1,7 @@
 # QuickFix submission readiness
 
+> Current real-data mode: direct merchant integration is prepared; pharmacy, payment and mail access are pending. Use `python -m orderfix.commerce.connected`. Historical simulation evidence below does not demonstrate real orders or refunds. See [current integration requirements](direct-merchant-integration.md).
+
 Prepared on 24 October 2026. This packet describes the new pharmacy
 cancellation/refund extension. It does not reuse the earlier OrderFix return
 request demo as evidence of the new workflow.

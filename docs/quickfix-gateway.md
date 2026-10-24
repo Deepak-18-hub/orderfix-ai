@@ -1,6 +1,8 @@
 # QuickFix payment gateway
 
-QuickFix has two explicitly labelled gateway modes. `simulated` stores local demonstration records in SQLite and never moves money. `razorpay_test` sends real HTTP requests to Razorpay's test environment using a merchant's test credentials. Live keys are rejected. The automated tests use `httpx.MockTransport`; passing them is not evidence of a successful live or sandbox transaction.
+> Current real-data mode: direct merchant integration is prepared; pharmacy, payment and mail access are pending. Use `python -m orderfix.commerce.connected`. Historical simulation evidence below does not demonstrate real orders or refunds. See [current integration requirements](direct-merchant-integration.md).
+
+QuickFix retains two development gateway modes alongside `unconfigured` and explicitly gated `razorpay_live`. `simulated` stores local demonstration records in SQLite and never moves money. `razorpay_test` sends real HTTP requests to Razorpay's test environment using a merchant's test credentials. Test mode rejects live keys; live mode requires matching live keys and `allow_live_refunds=True` before mutations. The automated tests use `httpx.MockTransport`; passing them is not evidence of a successful live or sandbox transaction.
 
 This adapter retrieves existing payments and issues refunds. It does **not** charge a customer, create a checkout, register a merchant, approve prescriptions, or provide native ASI checkout. A captured test payment must already exist before testing the Razorpay refund workflow. Razorpay documents separate [Test and Live modes](https://razorpay.com/docs/payments/dashboard/test-live-modes/); do not describe test records as actual customer funds.
 
@@ -8,13 +10,14 @@ This adapter retrieves existing payments and issues refunds. It does **not** cha
 
 `orderfix.commerce.payments` exports immutable dataclasses:
 
-- `PaymentSnapshot(id, merchant_ref, status, amount, currency, amount_refunded)`
+- `PaymentSnapshot(id, merchant_ref, status, amount, currency, amount_refunded, order_id=None)`
 - `RefundSnapshot(id, payment_id, amount, currency, status, operation_id)`
 
 The constructors are:
 
 ```python
-RazorpayGateway(key_id, key_secret, merchant_ref, client=None)
+RazorpayGateway(key_id, key_secret, merchant_ref, client=None, *,
+                mode="razorpay_test", allow_live_refunds=False)
 SimulatedGateway(path, merchant_ref="demo-pharmacy")
 ```
 

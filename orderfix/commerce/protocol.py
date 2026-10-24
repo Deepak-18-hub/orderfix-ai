@@ -1,4 +1,4 @@
-"""Versioned, signed uAgents messages for the sandbox commerce peers.
+"""Versioned, signed uAgents messages with distinct sandbox and live schemas.
 
 The framework verifies message signatures. These handlers additionally check the
 actual transport sender; a customer reference in a payload is never identity.
@@ -16,6 +16,7 @@ from pydantic.v1 import Field, root_validator, validator
 from uagents import Model, Protocol
 
 PROTOCOL_VERSION = "1.0"
+LIVE_PROTOCOL_VERSION = "2.0"
 MAX_TTL = timedelta(minutes=15)
 CLOCK_SKEW = timedelta(seconds=30)
 OPERATIONS = frozenset({"orders.list", "order.eligibility", "order.cancel", "order.get", "mail.send", "mail.status"})
@@ -117,17 +118,38 @@ class PeerResponse(PeerRequest):
         return values
 
 
+class LivePeerRequest(PeerRequest):
+    protocol_version: Literal["2.0"] = LIVE_PROTOCOL_VERSION
+    mode: Literal["live"] = "live"
+
+
+class LivePeerResponse(PeerResponse):
+    protocol_version: Literal["2.0"] = LIVE_PROTOCOL_VERSION
+    mode: Literal["live"] = "live"
+
+
+def parse_peer_request(data: dict) -> PeerRequest:
+    """Read a persisted envelope without silently upgrading legacy messages."""
+    pair = (data.get("protocol_version", "1.0"), data.get("mode", "sandbox"))
+    if pair == ("1.0", "sandbox"):
+        return PeerRequest(**data)
+    if pair == ("2.0", "live"):
+        return LivePeerRequest(**data)
+    raise PeerValidationError("unsupported mode or version")
+
+
 def response_for(request: PeerRequest, *, ok: bool, payload: dict | None = None,
                  error_code: str | None = None) -> PeerResponse:
-    return PeerResponse(**{key: getattr(request, key) for key in ENVELOPE_FIELDS},
-                        ok=ok, payload=payload or {}, error_code=error_code)
+    response_type = LivePeerResponse if isinstance(request, LivePeerRequest) else PeerResponse
+    return response_type(**{key: getattr(request, key) for key in ENVELOPE_FIELDS},
+                         ok=ok, payload=payload or {}, error_code=error_code)
 
 
 def validate_freshness(message: PeerEnvelope, now: datetime | None = None) -> None:
     now = now or datetime.now(timezone.utc)
     if now.tzinfo is None or now.utcoffset() != timedelta(0):
         raise PeerValidationError("verification time must be UTC")
-    if message.mode != "sandbox" or message.protocol_version != PROTOCOL_VERSION:
+    if (message.protocol_version, message.mode) not in {(PROTOCOL_VERSION, "sandbox"), (LIVE_PROTOCOL_VERSION, "live")}:
         raise PeerValidationError("unsupported mode or version")
     if message.created_at > now + CLOCK_SKEW:
         raise PeerValidationError("message creation time is in the future")
@@ -172,5 +194,9 @@ def make_peer_protocol(on_response: Callable, allowed_senders: Iterable[str]) ->
         result = on_response(ctx, sender, message)
         if inspect.isawaitable(result):
             await result
+
+    @protocol.on_message(LivePeerResponse, allow_unverified=False)
+    async def receive_live(ctx, sender: str, message: LivePeerResponse):
+        await receive(ctx, sender, message)
 
     return protocol

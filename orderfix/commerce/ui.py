@@ -20,7 +20,7 @@ _LABELS = {
     "en": {
         "help": "QuickFix helps cancel a pharmacy order and track its refund. Say ‘show my orders’, choose an order, then review the cancellation. You can ask for status at any time.",
         "orders": "Choose your order", "orders_hint": "Select an order below, or reply with its product name. No order number is needed.",
-        "empty": "There are no orders available for this account.", "select": "Review cancellation",
+        "empty": "There are no orders available for this account.", "select": "Review cancellation", "view_order": "View order", "order_detail": "Order details", "order_total": "Order total",
         "review": "Review cancellation and refund", "review_hint": "Check the details below. Choose ‘Cancel and refund’ to approve, or ‘Go back’ to leave this review. You can also reply ‘confirm’ or ‘back’.",
         "approve": "Cancel and refund", "back": "Go back", "status": "Cancellation and refund status", "check": "Check status",
         "item": "Order", "pharmacy": "Pharmacy", "amount": "Refund amount", "destination": "Refund destination", "original": "Original payment method",
@@ -34,7 +34,7 @@ _LABELS = {
     "hi": {
         "help": "QuickFix फ़ार्मेसी ऑर्डर रद्द करने और रिफंड की स्थिति जानने में मदद करता है। ‘मेरे ऑर्डर दिखाओ’ कहें, ऑर्डर चुनें और रद्द करने की जानकारी देखें। आप कभी भी स्थिति पूछ सकते हैं।",
         "orders": "अपना ऑर्डर चुनें", "orders_hint": "नीचे ऑर्डर चुनें या उत्पाद का नाम लिखें। ऑर्डर नंबर की ज़रूरत नहीं है।",
-        "empty": "इस खाते के लिए कोई ऑर्डर उपलब्ध नहीं है।", "select": "रद्द करने की समीक्षा",
+        "empty": "इस खाते के लिए कोई ऑर्डर उपलब्ध नहीं है।", "select": "रद्द करने की समीक्षा", "view_order": "ऑर्डर देखें", "order_detail": "ऑर्डर का विवरण", "order_total": "ऑर्डर की कुल राशि",
         "review": "रद्द करने और रिफंड की समीक्षा", "review_hint": "नीचे की जानकारी देखें। सहमति देने के लिए ‘रद्द करें और रिफंड लें’ चुनें, या ‘वापस जाएँ’ चुनें। आप ‘पुष्टि करें’ या ‘वापस’ भी लिख सकते हैं।",
         "approve": "रद्द करें और रिफंड लें", "back": "वापस जाएँ", "status": "रद्द करने और रिफंड की स्थिति", "check": "स्थिति देखें",
         "item": "ऑर्डर", "pharmacy": "फ़ार्मेसी", "amount": "रिफंड राशि", "destination": "रिफंड का माध्यम", "original": "मूल भुगतान माध्यम",
@@ -48,7 +48,7 @@ _LABELS = {
     "kn": {
         "help": "QuickFix ಔಷಧಾಲಯದ ಆರ್ಡರ್ ರದ್ದು ಮಾಡಲು ಮತ್ತು ಮರುಪಾವತಿ ಸ್ಥಿತಿ ತಿಳಿಯಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ. ‘ನನ್ನ ಆರ್ಡರ್ ತೋರಿಸಿ’ ಎಂದು ಹೇಳಿ, ಆರ್ಡರ್ ಆಯ್ಕೆಮಾಡಿ ಮತ್ತು ರದ್ದತಿಯನ್ನು ಪರಿಶೀಲಿಸಿ. ಯಾವಾಗ ಬೇಕಾದರೂ ಸ್ಥಿತಿ ಕೇಳಬಹುದು.",
         "orders": "ನಿಮ್ಮ ಆರ್ಡರ್ ಆಯ್ಕೆಮಾಡಿ", "orders_hint": "ಕೆಳಗೆ ಆರ್ಡರ್ ಆಯ್ಕೆಮಾಡಿ ಅಥವಾ ಉತ್ಪನ್ನದ ಹೆಸರು ಬರೆಯಿರಿ. ಆರ್ಡರ್ ಸಂಖ್ಯೆ ಅಗತ್ಯವಿಲ್ಲ.",
-        "empty": "ಈ ಖಾತೆಗೆ ಯಾವುದೇ ಆರ್ಡರ್ ಲಭ್ಯವಿಲ್ಲ.", "select": "ರದ್ದತಿ ಪರಿಶೀಲಿಸಿ",
+        "empty": "ಈ ಖಾತೆಗೆ ಯಾವುದೇ ಆರ್ಡರ್ ಲಭ್ಯವಿಲ್ಲ.", "select": "ರದ್ದತಿ ಪರಿಶೀಲಿಸಿ", "view_order": "ಆರ್ಡರ್ ನೋಡಿ", "order_detail": "ಆರ್ಡರ್ ವಿವರಗಳು", "order_total": "ಆರ್ಡರ್ ಒಟ್ಟು ಮೊತ್ತ",
         "review": "ರದ್ದತಿ ಮತ್ತು ಮರುಪಾವತಿ ಪರಿಶೀಲನೆ", "review_hint": "ಕೆಳಗಿನ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ. ಒಪ್ಪಲು ‘ರದ್ದು ಮಾಡಿ ಮತ್ತು ಮರುಪಾವತಿ ಪಡೆಯಿರಿ’ ಆಯ್ಕೆಮಾಡಿ, ಅಥವಾ ‘ಹಿಂದೆ ಹೋಗಿ’ ಆಯ್ಕೆಮಾಡಿ. ‘ದೃಢೀಕರಿಸಿ’ ಅಥವಾ ‘ಹಿಂದೆ’ ಎಂದೂ ಬರೆಯಬಹುದು.",
         "approve": "ರದ್ದು ಮಾಡಿ ಮತ್ತು ಮರುಪಾವತಿ ಪಡೆಯಿರಿ", "back": "ಹಿಂದೆ ಹೋಗಿ", "status": "ರದ್ದತಿ ಮತ್ತು ಮರುಪಾವತಿ ಸ್ಥಿತಿ", "check": "ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಿ",
         "item": "ಆರ್ಡರ್", "pharmacy": "ಔಷಧಾಲಯ", "amount": "ಮರುಪಾವತಿ ಮೊತ್ತ", "destination": "ಮರುಪಾವತಿ ವಿಧಾನ", "original": "ಮೂಲ ಪಾವತಿ ವಿಧಾನ",
@@ -108,7 +108,10 @@ _NOTICES = {
     "back": ("Review closed. No new action was approved.", "समीक्षा बंद हुई। किसी नई कार्रवाई की मंज़ूरी नहीं दी गई।", "ಪರಿಶೀಲನೆ ಮುಚ್ಚಲಾಗಿದೆ. ಹೊಸ ಕ್ರಮಕ್ಕೆ ಒಪ್ಪಿಗೆ ನೀಡಿಲ್ಲ."),
     "uncertain": ("The result is not verified yet. Check status; QuickFix will reconcile the existing operation before retrying.", "परिणाम अभी सत्यापित नहीं है। स्थिति देखें; दोबारा कोशिश से पहले QuickFix मौजूदा कार्रवाई जाँचेगा।", "ಫಲಿತಾಂಶ ಇನ್ನೂ ಪರಿಶೀಲಿಸಲಾಗಿಲ್ಲ. ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಿ; ಮತ್ತೆ ಪ್ರಯತ್ನಿಸುವ ಮೊದಲು QuickFix ಈಗಿನ ಕಾರ್ಯವನ್ನು ಪರಿಶೀಲಿಸುತ್ತದೆ."),
     "invalid_action": ("That selection could not be verified. Open the current review and use its buttons, or reply ‘confirm’ to approve it.", "चयन सत्यापित नहीं हुआ। वर्तमान समीक्षा के बटन इस्तेमाल करें, या मंज़ूरी के लिए ‘पुष्टि करें’ लिखें।", "ಆಯ್ಕೆ ಪರಿಶೀಲಿಸಲಾಗಲಿಲ್ಲ. ಈಗಿನ ಪರಿಶೀಲನೆಯ ಬಟನ್ ಬಳಸಿ ಅಥವಾ ಒಪ್ಪಲು ‘ದೃಢೀಕರಿಸಿ’ ಎಂದು ಬರೆಯಿರಿ."),
-    "access_required": ("Connect your authorized test customer before viewing orders.", "ऑर्डर देखने से पहले अपना अधिकृत परीक्षण ग्राहक जोड़ें।", "ಆರ್ಡರ್ ನೋಡುವ ಮೊದಲು ನಿಮ್ಮ ಅಧಿಕೃತ ಪರೀಕ್ಷಾ ಗ್ರಾಹಕ ಖಾತೆಯನ್ನು ಜೋಡಿಸಿ."),
+    "access_required": ("Connect your authorized customer account before viewing orders.", "ऑर्डर देखने से पहले अपना अधिकृत ग्राहक खाता जोड़ें।", "ಆರ್ಡರ್ ನೋಡುವ ಮೊದಲು ನಿಮ್ಮ ಅಧಿಕೃತ ಗ್ರಾಹಕ ಖಾತೆಯನ್ನು ಜೋಡಿಸಿ."),
+    "connection_required": ("Merchant connection required. The pharmacy's authorized order service and payment account are not ready. I cannot retrieve real orders or issue refunds yet. No sample orders are shown and no action has been performed.", "व्यापारी से कनेक्शन ज़रूरी है। फ़ार्मेसी की अधिकृत ऑर्डर सेवा और भुगतान खाता अभी तैयार नहीं हैं। अभी असली ऑर्डर नहीं देख सकता और रिफंड नहीं कर सकता। कोई नमूना ऑर्डर नहीं दिखाया गया और कोई कार्रवाई नहीं हुई।", "ವ್ಯಾಪಾರಿಯ ಸಂಪರ್ಕ ಅಗತ್ಯವಿದೆ. ಔಷಧಾಲಯದ ಅಧಿಕೃತ ಆರ್ಡರ್ ಸೇವೆ ಮತ್ತು ಪಾವತಿ ಖಾತೆ ಇನ್ನೂ ಸಿದ್ಧವಾಗಿಲ್ಲ. ಈಗ ನಿಜವಾದ ಆರ್ಡರ್ ಪಡೆಯಲು ಅಥವಾ ಮರುಪಾವತಿ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ. ಯಾವುದೇ ಮಾದರಿ ಆರ್ಡರ್ ತೋರಿಸಿಲ್ಲ ಮತ್ತು ಯಾವುದೇ ಕ್ರಮ ಕೈಗೊಂಡಿಲ್ಲ."),
+    "refunds_unavailable": ("These are the connected pharmacy's order details. Cancellation and refunds are unavailable until authorized merchant payment access and live refunds are enabled. No cancellation or refund was performed.", "ये जुड़ी फ़ार्मेसी के ऑर्डर का विवरण हैं। अधिकृत व्यापारी भुगतान पहुँच और लाइव रिफंड चालू होने तक रद्दीकरण और रिफंड उपलब्ध नहीं हैं। कोई रद्दीकरण या रिफंड नहीं हुआ।", "ಇವು ಸಂಪರ್ಕಿತ ಔಷಧಾಲಯದ ಆರ್ಡರ್ ವಿವರಗಳು. ಅಧಿಕೃತ ವ್ಯಾಪಾರಿ ಪಾವತಿ ಪ್ರವೇಶ ಮತ್ತು ನೇರ ಮರುಪಾವತಿ ಸಕ್ರಿಯಗೊಳ್ಳುವವರೆಗೆ ರದ್ದತಿ ಮತ್ತು ಮರುಪಾವತಿ ಲಭ್ಯವಿಲ್ಲ. ಯಾವುದೇ ರದ್ದತಿ ಅಥವಾ ಮರುಪಾವತಿ ನಡೆದಿಲ್ಲ."),
+    "readonly_help": ("Say ‘show my orders’ to view your connected pharmacy's order details. Cancellation and refunds are currently disabled.", "जुड़ी फ़ार्मेसी के अपने ऑर्डर का विवरण देखने के लिए ‘मेरे ऑर्डर दिखाओ’ कहें। रद्दीकरण और रिफंड अभी बंद हैं।", "ಸಂಪರ್ಕಿತ ಔಷಧಾಲಯದ ನಿಮ್ಮ ಆರ್ಡರ್ ವಿವರಗಳನ್ನು ನೋಡಲು ‘ನನ್ನ ಆರ್ಡರ್ ತೋರಿಸಿ’ ಎಂದು ಹೇಳಿ. ರದ್ದತಿ ಮತ್ತು ಮರುಪಾವತಿ ಪ್ರಸ್ತುತ ನಿಷ್ಕ್ರಿಯವಾಗಿವೆ."),
     "no_case": ("Choose an order first so I can check its case.", "मामले की स्थिति जाँचने के लिए पहले ऑर्डर चुनें।", "ಪ್ರಕರಣ ಪರಿಶೀಲಿಸಲು ಮೊದಲು ಆರ್ಡರ್ ಆಯ್ಕೆಮಾಡಿ."),
     "language_changed": ("I will reply in English.", "मैं हिंदी में जवाब दूँगा।", "ನಾನು ಕನ್ನಡದಲ್ಲಿ ಉತ್ತರಿಸುತ್ತೇನೆ."),
     "tool_failed": ("A connected service could not complete the request. Check the case status before trying again.", "जुड़ी सेवा अनुरोध पूरा नहीं कर सकी। दोबारा कोशिश से पहले मामले की स्थिति देखें।", "ಸಂಪರ್ಕಿತ ಸೇವೆ ಕೋರಿಕೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲಿಲ್ಲ. ಮತ್ತೆ ಪ್ರಯತ್ನಿಸುವ ಮೊದಲು ಪ್ರಕರಣದ ಸ್ಥಿತಿ ಪರಿಶೀಲಿಸಿ."),
@@ -123,6 +126,11 @@ for _alias, _original in {"ineligible": "not_eligible", "auth_required": "access
 _MODES = {
     "gateway_simulated": ("Payment: local simulation; no gateway charge or refund.", "भुगतान: स्थानीय सिमुलेशन; गेटवे पर कोई चार्ज या रिफंड नहीं।", "ಪಾವತಿ: ಸ್ಥಳೀಯ ಅನುಕರಣೆ; ಗೇಟ್‌ವೇಯಲ್ಲಿ ಶುಲ್ಕ ಅಥವಾ ಮರುಪಾವತಿ ಇಲ್ಲ."),
     "gateway_razorpay_test": ("Payment: Razorpay test mode; no real money moves.", "भुगतान: Razorpay परीक्षण मोड; असली पैसे नहीं चलते।", "ಪಾವತಿ: Razorpay ಪರೀಕ್ಷಾ ಮೋಡ್; ನಿಜವಾದ ಹಣ ಚಲಿಸುವುದಿಲ್ಲ."),
+    "gateway_unconfigured": ("Payment: merchant connection unavailable; refunds cannot be issued.", "भुगतान: व्यापारी कनेक्शन उपलब्ध नहीं; रिफंड नहीं किया जा सकता।", "ಪಾವತಿ: ವ್ಯಾಪಾರಿ ಸಂಪರ್ಕ ಲಭ್ಯವಿಲ್ಲ; ಮರುಪಾವತಿ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ."),
+    "gateway_razorpay_live": ("Payment: Razorpay live account; actions use actual merchant payment records.", "भुगतान: Razorpay लाइव खाता; कार्रवाइयों में व्यापारी के वास्तविक भुगतान रिकॉर्ड उपयोग होते हैं।", "ಪಾವತಿ: Razorpay ನೇರ ಖಾತೆ; ಕ್ರಮಗಳು ನಿಜವಾದ ವ್ಯಾಪಾರಿ ಪಾವತಿ ದಾಖಲೆಗಳನ್ನು ಬಳಸುತ್ತವೆ."),
+    "gateway_live_readonly": ("Payment: Razorpay live account; refunds are disabled.", "भुगतान: Razorpay लाइव खाता; रिफंड बंद हैं।", "ಪಾವತಿ: Razorpay ನೇರ ಖಾತೆ; ಮರುಪಾವತಿಗಳು ನಿಷ್ಕ್ರಿಯವಾಗಿವೆ."),
+    "pharmacy_unconfigured": ("Pharmacy: authorized connection pending.", "फ़ार्मेसी: अधिकृत कनेक्शन लंबित है।", "ಔಷಧಾಲಯ: ಅಧಿಕೃತ ಸಂಪರ್ಕ ಬಾಕಿ ಇದೆ."),
+    "mail_unconfigured": ("Email: authorized connection pending; no email has been sent.", "ईमेल: अधिकृत कनेक्शन लंबित है; कोई ईमेल नहीं भेजा गया।", "ಇಮೇಲ್: ಅಧಿಕೃತ ಸಂಪರ್ಕ ಬಾಕಿ ಇದೆ; ಯಾವುದೇ ಇಮೇಲ್ ಕಳುಹಿಸಿಲ್ಲ."),
     "pharmacy_simulated": ("Pharmacy: local simulator, not the teammate's connected agent.", "फ़ार्मेसी: स्थानीय सिम्युलेटर; साथी का एजेंट जुड़ा नहीं है।", "ಔಷಧಾಲಯ: ಸ್ಥಳೀಯ ಅನುಕರಣೆ; ಸಹತಂಡದ ಏಜೆಂಟ್ ಸಂಪರ್ಕಿತವಾಗಿಲ್ಲ."),
     "pharmacy_connected": ("Pharmacy: connected service.", "फ़ार्मेसी: जुड़ी सेवा।", "ಔಷಧಾಲಯ: ಸಂಪರ್ಕಿತ ಸೇವೆ."),
     "mail_captured": ("Email: local capture; no external delivery.", "ईमेल: स्थानीय कैप्चर; बाहर डिलीवरी नहीं होती।", "ಇಮೇಲ್: ಸ್ಥಳೀಯ ದಾಖಲೆ; ಹೊರಗೆ ತಲುಪಿಸುವುದಿಲ್ಲ."),
@@ -243,15 +251,23 @@ def render_view(view: dict[str, Any], language: str = "en") -> tuple[str, Metada
     language = language if language in _LABELS else "en"
     labels = _LABELS[language]
     index = ("en", "hi", "kn").index(language)
-    gateway = "gateway_razorpay_test" if view.get("gateway_mode") == "razorpay_test" else "gateway_simulated"
+    gateway_mode = view.get("gateway_mode", "simulated")
+    gateway = {"simulated": "gateway_simulated", "razorpay_test": "gateway_razorpay_test",
+               "unconfigured": "gateway_unconfigured", "razorpay_live": "gateway_razorpay_live"}.get(gateway_mode, "gateway_unconfigured")
+    read_only = gateway_mode == "unconfigured" or (gateway_mode == "razorpay_live" and not view.get("refunds_enabled", False))
+    if gateway_mode == "razorpay_live" and read_only:
+        gateway = "gateway_live_readonly"
     pharmacy = "pharmacy_connected" if view.get("pharmacy_mode") == "connected" else "pharmacy_simulated"
     mail = "mail_connected" if view.get("mail_mode") == "connected" else "mail_captured"
+    if view.get("code") == "connection_required":
+        pharmacy, mail = "pharmacy_unconfigured", "mail_unconfigured"
     prefix = "\n".join(_MODES[key][index] for key in (gateway, pharmacy, mail))
     if view.get("integration_note"):
         prefix += "\n" + str(view["integration_note"])
     kind = view.get("kind", "help")
     if kind == "help":
-        return prefix + "\n\n" + labels["help"], None
+        help_text = _NOTICES["readonly_help"][index] if read_only else labels["help"]
+        return prefix + "\n\n" + help_text, None
     if kind == "orders":
         orders = view.get("orders", [])
         if not orders:
@@ -267,10 +283,22 @@ def render_view(view: dict[str, Any], language: str = "en") -> tuple[str, Metada
             selection = _selection("qf_select", order.get("token"))
             items.append({"id": selection["token"], "title": title, "subtitle": pharmacy,
                           "badges": [{"label": state, "variant": "info"}], "secondary_text": amount,
-                          "primary_cta": {"label": labels["select"], "selection": selection}})
+                          "primary_cta": {"label": labels["view_order" if read_only else "select"], "selection": selection}})
             lines.append(f"• {title} · {pharmacy} · {amount} · {state}")
         text = prefix + "\n\n" + labels["orders_hint"] + "\n" + "\n".join(lines)
         return text, _card("carousel", {"title": labels["orders"], "subtitle": labels["orders_hint"], "items": items})
+    if kind == "order":
+        rows = [{"label": labels["item"], "value": str(view.get("title", ""))},
+                {"label": labels["pharmacy"], "value": str(view.get("pharmacy", ""))},
+                {"label": labels["order_total"], "value": _amount(view)},
+                {"label": labels["order_state"], "value": _state(view.get("order_state"), language)}]
+        for item in view.get("items", []):
+            rows.append({"label": labels["item"], "value": f"{item['name']} · {item['strength']} · {item['form']} · ×{item['quantity']}"})
+        hint = _NOTICES["refunds_unavailable"][index]
+        card = _card("detail", {"title": labels["order_detail"], "summary_rows": rows,
+                               "ctas": [{"label": labels["check"], "selection": _selection("qf_status", view.get("token"))},
+                                        {"label": labels["back"], "selection": _selection("qf_back")}]})
+        return prefix + "\n\n" + labels["order_detail"] + "\n" + "\n".join(f"{row['label']}: {row['value']}" for row in rows) + "\n\n" + hint, card
     if kind in {"review", "status"}:
         rows = [{"label": labels["item"], "value": str(view.get("title", ""))},
                 {"label": labels["pharmacy"], "value": str(view.get("pharmacy", ""))},

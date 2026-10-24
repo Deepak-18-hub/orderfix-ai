@@ -30,6 +30,7 @@ class PharmacyOrder(StrictModel):
     pharmacy_name: str = Field(min_length=1, max_length=160)
     merchant_ref: str = Field(min_length=1, max_length=128)
     payment_id: str = Field(min_length=1, max_length=160)
+    provider_order_id: str | None = Field(default=None, max_length=160)
     amount_minor: StrictInt = Field(gt=0, le=100000000)
     currency: Literal["INR"]
     order_state: Literal["accepted", "dispatched", "cancelled"]
@@ -68,6 +69,10 @@ class CommerceCase(StrictModel):
     token: str
     expires_at: datetime
     policy_text: str = ""
+    policy_version: str | None = None
+    eligibility_expires_at: datetime | None = None
+    merchant_refundable_minor: StrictInt | None = Field(default=None, gt=0)
+    cancellation_ref: str | None = None
     amount_minor: int = 0
     approval_ref: str | None = None
     cancellation_key: str
@@ -80,7 +85,7 @@ class CommerceCase(StrictModel):
     customer_notification: str = "not_queued"
     pharmacy_notification: str = "not_queued"
     last_error: str | None = None
-    gateway_mode: Literal["simulated", "razorpay_test"] = "simulated"
+    gateway_mode: Literal["unconfigured", "simulated", "razorpay_test", "razorpay_live"] = "simulated"
     pharmacy_mode: Literal["simulated", "connected"] = "simulated"
     mail_mode: Literal["captured", "connected"] = "captured"
     updated_at: datetime = Field(default_factory=now)

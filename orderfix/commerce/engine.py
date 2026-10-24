@@ -8,8 +8,9 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import re
 import secrets
-from datetime import timedelta
+from datetime import datetime, timedelta
 from uuid import UUID, uuid4, uuid5
 
 from pydantic import ValidationError
@@ -17,7 +18,7 @@ from pydantic import ValidationError
 from orderfix.storage import owner_key
 from .models import CommerceCase, PharmacyOrder, now
 from .payments import PaymentAmbiguous, PaymentRejected, PaymentUnavailable
-from .protocol import PeerRequest, PeerResponse, PeerValidationError, validate_response
+from .protocol import LivePeerRequest, PeerRequest, PeerResponse, PeerValidationError, parse_peer_request, validate_response
 from .store import CommerceStore
 from .ui import classify_text, parse_action
 
@@ -32,6 +33,9 @@ class CommerceEngine:
         self.store, self.gateway = store, gateway
         self.med_agent, self.mail_agent = med_agent, mail_agent
         self.pharmacy_mode, self.mail_mode, self.auto_demo = pharmacy_mode, mail_mode, auto_demo
+        self.real_mode = gateway.mode in ("unconfigured", "razorpay_live")
+        if self.real_mode and (pharmacy_mode != "connected" or mail_mode != "connected" or auto_demo):
+            raise ValueError("Real orders require connected peers and verified customer bindings")
         self._worker_lock = asyncio.Lock()
 
     def handles(self, sender: str, session: str, text: str) -> bool:
@@ -42,10 +46,13 @@ class CommerceEngine:
             'cancel my order', 'cancel that order', 'connect ', 'दवा', 'फार्मेसी', 'ಔಷಧ', 'ಫಾರ್ಮಸಿ'))
 
     def _modes(self):
-        return {"gateway_mode": self.gateway.mode, "pharmacy_mode": self.pharmacy_mode, "mail_mode": self.mail_mode}
+        return {"gateway_mode": self.gateway.mode, "pharmacy_mode": self.pharmacy_mode, "mail_mode": self.mail_mode,
+                "refunds_enabled": self.gateway.mode != "unconfigured" and
+                (self.gateway.mode != "razorpay_live" or getattr(self.gateway, "live_refunds_enabled", False))}
 
     def _binding(self):
-        return hashlib.sha256(json.dumps([self._modes(), self.med_agent, self.mail_agent,
+        modes = {key: self._modes()[key] for key in ("gateway_mode", "pharmacy_mode", "mail_mode")}
+        return hashlib.sha256(json.dumps([modes, self.med_agent, self.mail_agent,
             self.gateway.merchant_ref, getattr(self.gateway, "account_fingerprint", "simulated")], sort_keys=True).encode()).hexdigest()
 
     def _compatible(self, case):
@@ -87,11 +94,12 @@ class CommerceEngine:
     def _request(self, owner: str, operation: str, payload: dict, *, case=None, key=None):
         session = self.store.session(owner)
         instant = now()
-        return PeerRequest(request_id=str(uuid4()), correlation_id=owner,
+        request_type = LivePeerRequest if self.real_mode else PeerRequest
+        return request_type(request_id=str(uuid4()), correlation_id=owner,
             case_id=case.id if case else owner, customer_ref=session.customer_ref,
             operation=operation, idempotency_key=key or "op-"+uuid4().hex,
             created_at=instant, expires_at=instant+timedelta(minutes=10),
-            expected_version=case.version if case else 0, mode="sandbox", payload=payload)
+            expected_version=case.version if case else 0, payload=payload)
 
     def _queue(self, owner, operation, payload, *, case=None, key=None):
         peer = self.mail_agent if operation.startswith("mail.") else self.med_agent
@@ -161,6 +169,13 @@ class CommerceEngine:
         order = state.orders[token]
         if order.customer_ref != state.customer_ref:
             return self._notice("invalid_action")
+        if self.real_mode and not self._modes()["refunds_enabled"]:
+            state.active_case = None
+            self.store.save_session(owner, state)
+            return {"kind": "order", "token": token, "title": order.title,
+                    "pharmacy": order.pharmacy_name, "amount_minor": order.amount_minor,
+                    "currency": order.currency, "order_state": order.order_state,
+                    "items": [item.model_dump() for item in order.items]}
         existing = self.store.existing_case(order.customer_ref, order.order_id)
         if existing:
             # A second conversation needs its own authorized binding; it cannot
@@ -181,6 +196,8 @@ class CommerceEngine:
         return self._notice("pending")
 
     def _approve(self, owner: str, token: str | None):
+        if self.real_mode and not self._modes()["refunds_enabled"]:
+            return self._notice("refunds_unavailable")
         session = self.store.session(owner)
         case = self.store.case(session.active_case) if session.active_case else None
         if not case or case.owner != owner or (token is not None and token != case.token):
@@ -216,7 +233,7 @@ class CommerceEngine:
 
     async def send_due(self, send):
         for row in self.store.due():
-            request = PeerRequest.parse_raw(row["body"])
+            request = parse_peer_request(json.loads(row["body"]))
             case = self.store.case(request.case_id)
             if case and not self._compatible(case):
                 continue
@@ -232,7 +249,7 @@ class CommerceEngine:
                     request.operation == "order.eligibility" and case.stage == "eligibility")
                 if applicable:
                     instant = now()
-                    renewed = PeerRequest(**{**request.dict(), "request_id":str(uuid4()),
+                    renewed = type(request)(**{**request.dict(), "request_id":str(uuid4()),
                         "created_at":instant, "expires_at":instant+timedelta(minutes=10)})
                     self.store.renew_command(request.request_id, row["peer"], renewed)
                 else:
@@ -251,7 +268,7 @@ class CommerceEngine:
         row = self.store.command(response.request_id)
         if not row:
             return False
-        request = PeerRequest.parse_raw(row["body"])
+        request = parse_peer_request(json.loads(row["body"]))
         try:
             validate_response(response, request, sender, {row["peer"]})
         except PeerValidationError:
@@ -271,7 +288,8 @@ class CommerceEngine:
             self.store.finish_command(response.request_id, response)
             return True
         if not response.ok:
-            if response.error_code in ("UNAVAILABLE", "TEMPORARY_FAILURE", "RATE_LIMITED", "PROVIDER_UNAVAILABLE"):
+            if response.error_code in ("UNAVAILABLE", "TEMPORARY_FAILURE", "RATE_LIMITED", "PROVIDER_UNAVAILABLE",
+                                       "MERCHANT_UNAVAILABLE", "CANCELLATION_OUTCOME_UNKNOWN"):
                 # Retry only this same operation. Mail failures cannot re-enter
                 # the cancellation/refund state machine.
                 if case:
@@ -301,6 +319,9 @@ class CommerceEngine:
                     raise ValueError("order ownership mismatch")
                 if any(o.data_mode != self.pharmacy_mode for o in orders):
                     raise ValueError("pharmacy evidence mode mismatch")
+                if self.real_mode:
+                    for order in orders:
+                        self._validate_real_order(order)
                 if self.gateway.mode == "simulated" and self.pharmacy_mode == "simulated":
                     for order in orders:
                         self.gateway.seed_payment(order.payment_id, order.amount_minor, order.currency)
@@ -323,6 +344,8 @@ class CommerceEngine:
                     if response.payload.get("eligible") is not True or order.order_state != "accepted":
                         case.stage,case.last_error = "rejected","NOT_ELIGIBLE"
                     else:
+                        if self.real_mode:
+                            self._set_merchant_policy(case, response.payload)
                         case.order = order
                         case.policy_text = str(response.payload.get("policy_text", ""))[:1000]
                         case.stage = "payment_check"
@@ -331,6 +354,8 @@ class CommerceEngine:
                     if response.payload.get("cancelled") is not True or order.order_state != "cancelled":
                         case.stage,case.last_error = "blocked","CANCELLATION_NOT_VERIFIED"
                     else:
+                        if self.real_mode:
+                            self._verify_cancellation(case, order, response.payload)
                         case.order,case.stage = order,"refund"
                         self.store.event(case.id,"pharmacy_cancellation_verified")
                     self.store.save_case(case)
@@ -361,7 +386,7 @@ class CommerceEngine:
                     if state in ("queued", "accepted"):
                         followup = self._request(owner, "mail.status", {"notification_id":notification_id}, case=case,
                             key="status-"+uuid5(UUID(request.request_id), "delivery-status").hex)
-                        followup = PeerRequest(**{**followup.dict(), "request_id":str(uuid5(UUID(request.request_id), "delivery-status"))})
+                        followup = type(followup)(**{**followup.dict(), "request_id":str(uuid5(UUID(request.request_id), "delivery-status"))})
                         self.store.queue(self.mail_agent, followup)
                         with self.store.conn:
                             self.store.conn.execute("UPDATE qf_commands SET next_at=? WHERE id=?",
@@ -385,7 +410,43 @@ class CommerceEngine:
             "json_extract(body,'$.operation')='mail.send' AND json_extract(body,'$.case_id')=? "
             "AND json_extract(response,'$.payload.notification_id')=? ORDER BY rowid DESC LIMIT 1",
             (request.case_id,request.payload.get("notification_id"))).fetchone()
-        return PeerRequest.parse_raw(row[0]).payload if row else {}
+        return parse_peer_request(json.loads(row[0])).payload if row else {}
+
+    def _validate_real_order(self, order):
+        if (order.data_mode != "connected" or order.merchant_ref != self.gateway.merchant_ref
+                or not re.fullmatch(r"order_[A-Za-z0-9]+", order.provider_order_id or "")
+                or not re.fullmatch(r"pay_[A-Za-z0-9]+", order.payment_id)
+                or any(email.lower().endswith(".invalid") for email in (order.customer_email, order.pharmacy_email))):
+            raise ValueError("Merchant-backed order and payment binding required")
+
+    def _set_merchant_policy(self, case, payload):
+        amount = payload.get("refundable_amount_minor")
+        version = payload.get("policy_version")
+        expiry = payload.get("eligibility_expires_at")
+        if (type(amount) is not int or not 0 < amount <= case.order.amount_minor
+                or payload.get("currency") != case.order.currency
+                or not isinstance(version, str) or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", version)
+                or not isinstance(expiry, str)):
+            raise ValueError("Exact merchant refund terms required")
+        expires = datetime.fromisoformat(expiry)
+        if (expires.tzinfo is None or expires.utcoffset() != timedelta(0)
+                or not now() < expires <= now() + timedelta(minutes=15)):
+            raise ValueError("Merchant refund terms expired or invalid")
+        if not isinstance(payload.get("policy_text"), str) or not payload["policy_text"].strip():
+            raise ValueError("Merchant cancellation policy required")
+        case.merchant_refundable_minor = amount
+        case.policy_version, case.eligibility_expires_at = version, expires
+
+    def _verify_cancellation(self, case, order, payload):
+        reference = payload.get("cancellation_ref")
+        if (order.version != case.order.version + 1
+                or type(payload.get("refundable_amount_minor")) is not int
+                or payload["refundable_amount_minor"] != case.amount_minor
+                or payload.get("currency") != case.order.currency
+                or payload.get("policy_version") != case.policy_version
+                or not isinstance(reference, str) or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,200}", reference)):
+            raise ValueError("Cancellation does not match approved merchant terms")
+        case.cancellation_ref = reference
 
     def _check_payment(self, case: CommerceCase, payment):
         if (payment.id,payment.merchant_ref,payment.amount,payment.currency,payment.status) != (
@@ -394,6 +455,13 @@ class CommerceEngine:
         remaining = payment.amount-payment.amount_refunded
         if remaining <= 0:
             raise PaymentRejected("No remaining refundable balance")
+        if self.real_mode:
+            if not case.order.provider_order_id or payment.order_id != case.order.provider_order_id:
+                raise PaymentRejected("Gateway payment belongs to a different order")
+            amount = case.merchant_refundable_minor
+            if type(amount) is not int or not 0 < amount <= remaining:
+                raise PaymentRejected("Merchant refund exceeds remaining captured payment")
+            return amount
         return remaining
 
     def _save_refund(self, case: CommerceCase, refund):
@@ -438,6 +506,9 @@ class CommerceEngine:
                 initial_stage,initial_version = case.stage,case.version
                 try:
                     if case.stage in ("payment_check","payment_recheck"):
+                        if self.real_mode and (not self._modes()["refunds_enabled"]
+                                or not case.eligibility_expires_at or case.eligibility_expires_at <= now()):
+                            raise PaymentRejected("Live refund access or current merchant terms unavailable")
                         payment = await self.gateway.get_payment(case.order.payment_id)
                         current = self.store.case(case.id)
                         if not current or (current.stage,current.version)!=(initial_stage,initial_version):
@@ -447,15 +518,22 @@ class CommerceEngine:
                             case.amount_minor = remaining
                             case.payment_state,case.stage = "captured","review"
                             case.expires_at = now()+timedelta(minutes=10)
+                            if self.real_mode:
+                                case.expires_at = min(case.expires_at, case.eligibility_expires_at)
                             case.version += 1
                             self.store.save_case(case)
                         else:
                             if remaining != case.amount_minor:
                                 raise PaymentRejected("Refundable amount changed since approval")
                             case.stage = "cancelling"
-                            request = self._request(case.owner,"order.cancel",{
+                            cancel_payload = {
                                 "order_id":case.order.order_id,"expected_order_version":case.order.version,
-                                "approval_ref":case.approval_ref},case=case,key=case.cancellation_key)
+                                "approval_ref":case.approval_ref}
+                            if self.real_mode:
+                                cancel_payload.update(refundable_amount_minor=case.amount_minor,
+                                    currency=case.order.currency, policy_version=case.policy_version,
+                                    eligibility_expires_at=case.eligibility_expires_at.isoformat())
+                            request = self._request(case.owner,"order.cancel",cancel_payload,case=case,key=case.cancellation_key)
                             if not self.med_agent:
                                 raise PaymentUnavailable("Pharmacy peer unavailable")
                             self.store.save_case_and_commands(case,[(self.med_agent,request)])
@@ -464,6 +542,8 @@ class CommerceEngine:
                         # amount and stable refund key cannot be changed here.
                         if not case.approval_ref or case.order.order_state != "cancelled":
                             raise PaymentRejected("Cancellation and approval required")
+                        if self.real_mode and (not self._modes()["refunds_enabled"] or not case.cancellation_ref):
+                            raise PaymentRejected("Live authorization and merchant cancellation proof required")
                         refund = await self.gateway.get_refund(case.order.payment_id,case.refund_id) if case.refund_id else await self.gateway.find_refund(case.order.payment_id,case.refund_key)
                         if refund is None:
                             if case.refund_dispatched:
@@ -474,7 +554,17 @@ class CommerceEngine:
                             case.refund_state = "submitting"
                             case.refund_dispatched = True
                             self.store.save_case(case)
-                            refund = await self.gateway.create_refund(case.order.payment_id,case.amount_minor,case.order.currency,case.refund_key)
+                            try:
+                                refund = await self.gateway.create_refund(case.order.payment_id,case.amount_minor,case.order.currency,case.refund_key)
+                            except PaymentUnavailable:
+                                # The adapter guarantees this exception means
+                                # submission never happened (for example a
+                                # failed preflight read). Unknown submissions
+                                # and readback failures use PaymentAmbiguous
+                                # and must retain the durable dispatch marker.
+                                case.refund_dispatched = False
+                                self.store.save_case(case)
+                                raise
                         self._save_refund(case,refund)
                 except PaymentRejected:
                     case.stage,case.last_error = "blocked","PAYMENT_REJECTED"

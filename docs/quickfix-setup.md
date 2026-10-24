@@ -1,5 +1,7 @@
 # QuickFix setup
 
+> Current real-data mode: direct merchant integration is prepared; pharmacy, payment and mail access are pending. Use `python -m orderfix.commerce.connected`. Historical simulation evidence below does not demonstrate real orders or refunds. See [current integration requirements](direct-merchant-integration.md).
+
 QuickFix extends OrderFix with cancellation and refund coordination for an
 **existing paid pharmacy order**. It is not a medicine-shopping or new-checkout
 implementation. The primary conversation selects an order, checks its policy,

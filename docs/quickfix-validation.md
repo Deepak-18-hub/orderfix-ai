@@ -1,5 +1,15 @@
 # QuickFix verification — 24 October 2026
 
+## Direct-integration preparation verification
+
+24 October 2026: **558 tests passed in 22.35 seconds**. This includes live gateway gates, partial refund terms, merchant cancellation evidence, separate live v2 schemas, no demo fallback and recovery from pre-submission failures without duplicating uncertain submissions. All merchant/payment HTTP tests use injected transports; no financial transaction or external email was performed.
+
+Agentverse accepted the updated pending-access profile under the existing identity. The laptop was switched from `orderfix.commerce.judge` to `orderfix.commerce.connected`; loopback health returned `ok` and the mailbox client started. ASI:One may retain an older cached profile description; fresh conversation verification is recorded separately when available.
+
+## Historical simulation verification
+
+> Current real-data mode: direct merchant integration is prepared; pharmacy, payment and mail access are pending. Use `python -m orderfix.commerce.connected`. Historical simulation evidence below does not demonstrate real orders or refunds. See [current integration requirements](direct-merchant-integration.md).
+
 The extension is running on the judging laptop under the existing registered
 OrderFix identity. Agentverse showed Active and ASI:One Available after the
 profile update. External teammate/payment/email integrations remain unverified.

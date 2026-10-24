@@ -36,7 +36,7 @@ def incoming_text(message: ChatMessage, address: str, handle: str | None = PUBLI
     return text
 
 
-def make_protocol(engine: Engine, cards: bool = True, commerce=None) -> Protocol:
+def make_protocol(engine: Engine, cards: bool = True, commerce=None, require_real: bool = False) -> Protocol:
     protocol = Protocol(spec=chat_protocol_spec)
 
     @protocol.on_message(ChatMessage)
@@ -44,11 +44,12 @@ def make_protocol(engine: Engine, cards: bool = True, commerce=None) -> Protocol
         await ctx.send(sender, ChatAcknowledgement(acknowledged_msg_id=message.msg_id))
         try:
             text = incoming_text(message, getattr(getattr(ctx, "agent", None), "address", ""))
-            if commerce is not None and commerce.handles(sender, str(ctx.session), text):
+            if commerce is not None and (require_real or commerce.handles(sender, str(ctx.session), text)):
                 from .commerce.acp import message_for, record_delivery
                 view = await commerce.handle(sender, str(ctx.session), str(message.msg_id), text)
                 result = await ctx.send(sender, message_for(view, cards))
-                record_delivery(commerce, sender, ctx.session, view, result)
+                if not getattr(commerce, "connected_waiting", False):
+                    record_delivery(commerce, sender, ctx.session, view, result)
                 return
             reply = await engine.handle(sender, str(ctx.session), str(message.msg_id), text)
             if any(isinstance(block, ResourceContent) for block in message.content):
@@ -73,17 +74,22 @@ def build_agent(settings: Settings | None = None) -> Agent:
     settings = settings or Settings.load()
     if len(settings.seed) < 32:
         raise ValueError("Run python -m orderfix.setup_local once to create a private stable AGENT_SEED")
-    engine = make_engine(settings)
+    require_real = os.getenv("QUICKFIX_REQUIRE_REAL", "false").lower() == "true"
+    # Real-only entry never constructs the legacy provider or seeds demo data.
+    engine = None if require_real else make_engine(settings)
     commerce = None
-    if os.getenv("QUICKFIX_ENABLED", "false").lower() == "true":
+    if require_real:
+        from .commerce.runtime import make_connected_engine
+        commerce = make_connected_engine()
+    elif os.getenv("QUICKFIX_ENABLED", "false").lower() == "true":
         from .commerce.runtime import make_engine_from_env
         commerce = make_engine_from_env()
     agent = Agent(name="OrderFix", seed=settings.seed, port=settings.port, mailbox=True,
         publish_agent_details=True, readme_path=str(Path(__file__).resolve().parents[1] / "AGENT_PROFILE.md"),
         description=DESCRIPTION, avatar_url=AVATAR_URL,
         store_message_history=False, enable_agent_inspector=False)
-    agent.include(make_protocol(engine, settings.cards, commerce), publish_manifest=True)
-    if commerce is not None:
+    agent.include(make_protocol(engine, settings.cards, commerce, require_real), publish_manifest=True)
+    if commerce is not None and not getattr(commerce, "connected_waiting", False):
         from .commerce.acp import attach_worker
         attach_worker(agent, commerce, settings.cards)
 
@@ -97,14 +103,17 @@ def build_agent(settings: Settings | None = None) -> Agent:
 
     @agent.on_event("startup")
     async def startup(ctx: Context):
-        ctx.logger.info("OrderFix address: %s | ACP: %s | store: %s", agent.address, chat_protocol_spec.version, settings.mode)
+        store_mode = ("merchant connection pending" if getattr(commerce, "connected_waiting", False)
+                      else "connected merchant" if require_real else settings.mode)
+        ctx.logger.info("OrderFix address: %s | ACP: %s | store: %s", agent.address, chat_protocol_spec.version, store_mode)
         ctx.logger.info("Mailbox mode: register once with python -m orderfix.register --register. Keep this process running; no public tunnel is required.")
 
     @agent.on_event("shutdown")
     async def shutdown(ctx: Context):
-        engine.provider.close()
-        engine.storage.close()
-        if commerce is not None:
+        if engine is not None:
+            engine.provider.close()
+            engine.storage.close()
+        if commerce is not None and not getattr(commerce, "connected_waiting", False):
             commerce.gateway.close()
             commerce.store.close()
 

@@ -3,6 +3,12 @@
 ![tag:innovationlab](https://img.shields.io/badge/innovationlab-3D8BD3)
 ![tag:hackathon](https://img.shields.io/badge/hackathon-5F43F1)
 
+## Current direct-integration status
+
+The selected public mode is now **real merchant access required**. Pharmacy, payment and mail connections are pending; the connected launcher returns a clear notice and never substitutes sample orders. Live refunds are disabled by default. Run `python -m orderfix.commerce.connected` under the existing identity. See the [direct merchant integration guide](docs/direct-merchant-integration.md) for the three-agent contract and remaining account requirements.
+
+The simulation chats, amounts, screenshots and older deployment tables below are **historical demonstration evidence**, not evidence of current real merchant access. The legacy launch commands remain available for isolated development only.
+
 ## QuickFix extension — pharmacy cancellation and refunds
 
 QuickFix adds a **post-purchase** workflow: select an existing pharmacy order, check cancellation eligibility, approve the exact cancellation/refund, and inspect pharmacy, refund and notification states separately. Its local peers use fictional pharmacy orders, a simulated payment ledger and captured emails. No real medicine is dispensed and no real money moves in this mode.
@@ -15,7 +21,7 @@ Run `python -m orderfix.commerce.cli demo` for a bounded demonstration with real
 
 **Local verification:** 407 automated tests passed. The [verification record](docs/quickfix-validation.md) separates local agent messages, mocked gateway tests, captured emails and outstanding external acceptance.
 
-**Deployed on 24 October 2026:** the existing laptop mailbox agent now runs QuickFix. [Open @orderfix-ai](https://asi1.ai/ai/agent1qdhv4kkryldes33rtzvpr6uznhdup5tdz9apfthxw7r7r8jv930ccrqspns) and send `quickfix show my orders`. The [new shared ASI:One conversation](https://asi1.ai/shared-chat/56e03728-b610-4698-b18e-8f250451fb5b) demonstrates order selection, an exact approval, cancellation, a simulated INR 349 refund and two captured receipts. The public [407-test run passed](https://github.com/Deepak-18-hub/orderfix-ai/actions/runs/40077127283). Keep the laptop awake, connected and the judging process running; cloud hosting remains deferred.
+**Historical simulation deployment on 24 October 2026:** the laptop mailbox agent ran the QuickFix simulation. [Open @orderfix-ai](https://asi1.ai/ai/agent1qdhv4kkryldes33rtzvpr6uznhdup5tdz9apfthxw7r7r8jv930ccrqspns) and send `quickfix show my orders`. The [new shared ASI:One conversation](https://asi1.ai/shared-chat/56e03728-b610-4698-b18e-8f250451fb5b) demonstrates order selection, an exact approval, cancellation, a simulated INR 349 refund and two captured receipts. The public [407-test run passed](https://github.com/Deepak-18-hub/orderfix-ai/actions/runs/40077127283). Keep the laptop awake, connected and the judging process running; cloud hosting remains deferred.
 
 ![QuickFix simulated refund and captured receipt statuses in ASI:One](assets/quickfix-live-status.png)
 
@@ -25,7 +31,7 @@ Run `python -m orderfix.commerce.cli demo` for a bounded demonstration with real
 
 OrderFix helps shoppers look up an order, check whether an item can be returned, submit a return request after reviewing it, and retrieve its recorded status. The primary interaction is designed for an **ASI:One conversation**, using the **Agent Chat Protocol (ACP)**. English, Hindi and Kannada are supported.
 
-**The delivered default is a synthetic merchant demo with real local persistence.** Confirming a review creates a durable SQLite return record, reserves the returned quantity, and reads the saved record back before reporting success. No purchase, shipment or refund takes place.
+**The legacy standalone launcher is a synthetic merchant demo with real local persistence.** Confirming a review creates a durable SQLite return record, reserves the returned quantity, and reads the saved record back before reporting success. No purchase, shipment or refund takes place.
 
 ## Deployment and verification status
 

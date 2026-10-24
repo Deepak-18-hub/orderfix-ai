@@ -1,5 +1,7 @@
 # QuickFix commerce peer contract v1.0
 
+> Current real-data mode: direct merchant integration is prepared; pharmacy, payment and mail access are pending. Use `python -m orderfix.commerce.connected`. Historical simulation evidence below does not demonstrate real orders or refunds. See [current integration requirements](direct-merchant-integration.md).
+
 This contract connects the OrderFix/QuickFix commerce coordinator to a fictional
 pharmacy simulator and a captured-email peer. It is a **sandbox** contract. It
 does not authorize real medicine dispensing, money movement, or email delivery.

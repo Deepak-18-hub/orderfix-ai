@@ -1,7 +1,8 @@
-"""Test-only payment adapters. No card, prescription, or customer contact data.
+"""Explicit-mode payment adapters without card or customer contact data.
 
 Callers must bind the payment to an authenticated customer and merchant before
 using this module, and persist their dispatch journal before create_refund().
+Live reads are supported separately from the explicit live-refund enable switch.
 """
 from __future__ import annotations
 
@@ -37,6 +38,7 @@ class PaymentSnapshot:
     amount: int
     currency: str
     amount_refunded: int
+    order_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -93,7 +95,13 @@ def _same_request(refund: RefundSnapshot, amount: int, currency: str) -> RefundS
 
 
 class RazorpayGateway:
-    """Razorpay TEST credentials only; injected HTTP clients remain caller-owned."""
+    """Razorpay adapter; live refunds require explicit operator configuration.
+
+    ``merchant_ref`` is an operator-configured account mapping, not a merchant
+    identifier independently returned or verified by the payment response.
+    Callers must compare ``PaymentSnapshot.order_id`` with their trusted order
+    binding before approving a live refund. Injected clients remain caller-owned.
+    """
 
     mode = "razorpay_test"
     _BASE_URL = "https://api.razorpay.com/v1"
@@ -101,22 +109,43 @@ class RazorpayGateway:
     _MAX_PAGES = 5
 
     def __init__(self, key_id: str, key_secret: str, merchant_ref: str,
-                 client: httpx.AsyncClient | None = None):
-        if not isinstance(key_id, str) or not re.fullmatch(r"rzp_test_[A-Za-z0-9]+", key_id):
-            raise PaymentRejected("Razorpay TEST credentials are required; live keys are disabled.")
+                 client: httpx.AsyncClient | None = None, *,
+                 mode: str = "razorpay_test", allow_live_refunds: bool = False):
+        if mode not in ("razorpay_test", "razorpay_live"):
+            raise PaymentRejected("Razorpay mode must be razorpay_test or razorpay_live.")
+        if type(allow_live_refunds) is not bool:
+            raise PaymentRejected("The live refund switch must be a boolean.")
+        key_prefix = "rzp_live_" if mode == "razorpay_live" else "rzp_test_"
+        if not isinstance(key_id, str) or not re.fullmatch(key_prefix + r"[A-Za-z0-9]+", key_id):
+            label = "LIVE" if mode == "razorpay_live" else "TEST"
+            raise PaymentRejected(f"Razorpay {label} credentials are required for the configured mode.")
         if not isinstance(key_secret, str) or not key_secret or any(c.isspace() for c in key_secret):
-            raise PaymentRejected("A valid Razorpay test key secret is required.")
+            raise PaymentRejected("A valid Razorpay key secret is required.")
         _merchant(merchant_ref)
+        self.mode = mode
+        self.live_refunds_enabled = mode == "razorpay_live" and allow_live_refunds
         self.merchant_ref = merchant_ref
-        self.account_fingerprint = hashlib.sha256(key_id.encode()).hexdigest()
+        self.account_fingerprint = hashlib.sha256(
+            f"{mode}:{key_id}:{self.live_refunds_enabled}".encode()).hexdigest()
         self._auth = httpx.BasicAuth(key_id, key_secret)
         self._client = client
+
+    def _payment_identifier(self, payment_id: str) -> None:
+        _identifier(payment_id, "pay")
+        if self.mode == "razorpay_live" and payment_id.startswith("pay_sim_"):
+            raise PaymentRejected("Synthetic payment identifiers cannot be used in live mode.")
+
+    def _require_refund_enabled(self) -> None:
+        if self.mode == "razorpay_live" and not self.live_refunds_enabled:
+            raise PaymentRejected("Live refunds are disabled; merchant refund access must be enabled explicitly.")
 
     def close(self) -> None:
         """No retained owned client; the owner closes an injected client."""
 
     async def _request(self, method: str, path: str, **kwargs) -> dict:
         mutation = method != "GET"
+        if mutation:
+            self._require_refund_enabled()
         # Deadline also bounds custom/injected transports, not only real sockets.
         try:
             async with asyncio.timeout(12):
@@ -164,6 +193,11 @@ class RazorpayGateway:
         try:
             _money(data["amount"], data["currency"])
             refunded = data["amount_refunded"]
+            order_id = data.get("order_id")
+            if order_id is not None:
+                _identifier(order_id, "order")
+            if self.mode == "razorpay_live" and order_id is None:
+                raise ValueError
             if (data["id"] != payment_id or data.get("entity") != "payment"
                     or data["status"] not in _PAYMENT_STATES
                     or type(refunded) is not int or not 0 <= refunded <= data["amount"]
@@ -171,7 +205,7 @@ class RazorpayGateway:
                     or (data["status"] == "refunded" and refunded != data["amount"])):
                 raise ValueError
             return PaymentSnapshot(payment_id, self.merchant_ref, data["status"],
-                                   data["amount"], data["currency"], refunded)
+                                   data["amount"], data["currency"], refunded, order_id)
         except (KeyError, TypeError, ValueError, PaymentRejected):
             raise PaymentUnavailable("Payment service returned inconsistent payment data.") from None
 
@@ -198,11 +232,11 @@ class RazorpayGateway:
             raise PaymentUnavailable("Payment service returned inconsistent refund data.") from None
 
     async def get_payment(self, payment_id: str) -> PaymentSnapshot:
-        _identifier(payment_id, "pay")
+        self._payment_identifier(payment_id)
         return self._payment(await self._request("GET", f"/payments/{payment_id}"), payment_id)
 
     async def get_refund(self, payment_id: str, refund_id: str) -> RefundSnapshot:
-        _identifier(payment_id, "pay")
+        self._payment_identifier(payment_id)
         _identifier(refund_id, "rfnd")
         data = await self._request("GET", f"/payments/{payment_id}/refunds/{refund_id}")
         refund = self._refund(data, payment_id)
@@ -211,7 +245,7 @@ class RazorpayGateway:
         return refund
 
     async def find_refund(self, payment_id: str, operation_id: str) -> RefundSnapshot | None:
-        _identifier(payment_id, "pay")
+        self._payment_identifier(payment_id)
         _operation(operation_id)
         found = None
         seen = set()
@@ -255,7 +289,8 @@ class RazorpayGateway:
 
     async def create_refund(self, payment_id: str, amount: int, currency: str,
                             operation_id: str) -> RefundSnapshot:
-        _identifier(payment_id, "pay")
+        self._require_refund_enabled()
+        self._payment_identifier(payment_id)
         _operation(operation_id)
         _money(amount, currency)
         existing = await self.find_refund(payment_id, operation_id)
