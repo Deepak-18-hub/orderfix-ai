@@ -7,7 +7,7 @@ profile update. External teammate/payment/email integrations remain unverified.
 ## Automated results
 
 Final command: `python -m pytest -q` with a fresh workspace temporary directory.
-Result: **405 passed in 31.86 seconds** — 190 existing tests and 215 commerce
+Result: **407 passed in 15.38 seconds** — 190 existing tests and 217 commerce
 extension tests. The Windows restricted runner stalled; the successful run used
 the normal local Python environment. `git diff --check` reported no whitespace
 errors.
@@ -69,15 +69,28 @@ deployed teammate traffic.
    configured, and the gateway exposes a matching processed/pending refund.
 3. The teammate mail agent supports the contract, has an authorized sender and
    approved test recipients, and returns provider-backed delivery evidence.
-4. Run and record a new complete ASI:One conversation with accurate mode labels;
-   the existing shared chat/video cover only the earlier OrderFix workflow.
-5. Publish the tested QuickFix source, record the 3–5 minute demo and complete the
-   current hackpack's submission process.
+4. Record the new 3–5 minute demo and complete the current hackpack's submission
+   process. The earlier video covers only the original OrderFix workflow.
 
 The judging launcher was started using the existing seed and mailbox. Its
 loopback health endpoint returned `status: ok`. ASI displayed the synthetic order
 carousel. The client adds `approved: true` on selection; the parser now accepts
 that as selection intent only. Tests verify selection never executes a refund.
-Temporary input diagnostics were removed. Final live verification is pending
-while ASI/Agentverse requests time out; local health alone is not external
-availability. No cloud host, new credentials or paid service was introduced.
+Temporary input diagnostics were removed. After intermittent ASI/Agentverse
+timeouts recovered, the full English workflow completed in ASI:One: order card,
+policy/refund review, approval button, cancelled order, processed simulated
+refund, captured customer and pharmacy receipts, and status-button refresh.
+Read-only database checks confirmed exactly **one simulated refund** and
+**two captured receipts per order** across both live test conversations. No cloud host, new credentials or paid service was
+introduced. No real money moved and no external email was sent.
+
+Evidence:
+
+- [New shared ASI:One conversation](https://asi1.ai/shared-chat/56e03728-b610-4698-b18e-8f250451fb5b).
+- [Live final status screenshot](../assets/quickfix-live-status.png).
+- Implementation commits `a783155` and `4ed3141` published to the existing public repository.
+- [Public GitHub tests](https://github.com/Deepak-18-hub/orderfix-ai/actions/runs/40077127283).
+
+The live deployment verification used English. Hindi/Kannada QuickFix coverage
+is automated; do not describe that as live multilingual acceptance evidence.
+Laptop uptime, connectivity and the background judging process are required.

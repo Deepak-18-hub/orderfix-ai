@@ -22,13 +22,13 @@ agent and Razorpay test transaction require their own verification.
 
 | Deliverable or claim | Current state |
 | --- | --- |
-| Public repository | Existing [orderfix-ai repository](https://github.com/Deepak-18-hub/orderfix-ai); publish and verify the tested QuickFix commit before submitting this extension |
+| Public repository | [orderfix-ai repository](https://github.com/Deepak-18-hub/orderfix-ai); QuickFix implementation and button compatibility published through `4ed3141`, with 407 passing public tests |
 | Registered OrderFix identity | Existing [Agentverse profile](https://agentverse.ai/agents/details/agent1qdhv4kkryldes33rtzvpr6uznhdup5tdz9apfthxw7r7r8jv930ccrqspns/profile); retain its private seed |
-| Direct ASI:One entry | Existing [OrderFix chat](https://asi1.ai/ai/agent1qdhv4kkryldes33rtzvpr6uznhdup5tdz9apfthxw7r7r8jv930ccrqspns); new workflow still needs a complete verification run |
+| Direct ASI:One entry | [OrderFix chat](https://asi1.ai/ai/agent1qdhv4kkryldes33rtzvpr6uznhdup5tdz9apfthxw7r7r8jv930ccrqspns); complete English QuickFix simulation verified live on 24 October 2026; start with `quickfix show my orders` |
 | Teammate pharmacy integration | Source reviewed; contract compatibility and live replies unverified |
 | Teammate mail integration | Being built; no configured email account or real recipients |
 | Gateway test refund | No Razorpay credentials or captured provider test payment supplied |
-| New shared chat | Pending: show order selection, policy, approval, cancellation, refund state and both notification states |
+| New shared chat | [Verified QuickFix simulation](https://asi1.ai/shared-chat/56e03728-b610-4698-b18e-8f250451fb5b): selection, policy, approval, cancellation, processed simulated refund and two captured receipts |
 | New 3–5 minute video | Pending: record the new workflow and identify every simulated component |
 | Official project submission | Not completed by this implementation |
 

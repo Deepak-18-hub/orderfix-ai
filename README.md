@@ -13,9 +13,13 @@ The extension is opt-in with `QUICKFIX_ENABLED=true`; the default remains `false
 
 Run `python -m orderfix.commerce.cli demo` for a bounded demonstration with real uAgents local messages, one simulated refund and two captured emails. A separate loopback check verifies signed envelopes. For laptop judging through the existing registered identity, the simulation launcher is `python -m orderfix.commerce.judge`; see the [setup and evidence limits](docs/quickfix-setup.md). Share the [versioned teammate contract](docs/quickfix-contract.md) with both teammates.
 
-**Local verification:** 405 automated tests passed. The [verification record](docs/quickfix-validation.md) separates local agent messages, mocked gateway tests, captured emails and outstanding external acceptance.
+**Local verification:** 407 automated tests passed. The [verification record](docs/quickfix-validation.md) separates local agent messages, mocked gateway tests, captured emails and outstanding external acceptance.
 
-**Evidence boundary:** the shared chat, video and deployment verification below belong to the original return-request workflow. They do not demonstrate QuickFix cancellation/refund or teammate-agent integration. A fresh complete ASI:One conversation and 3–5 minute video are required for this extension. The [current hackpack](https://www.fetch.ai/events/hackathons/fetch-a-thon-3/hackpack) requires submission through its ASI:One dashboard's **Project Submission Agent**.
+**Deployed on 24 October 2026:** the existing laptop mailbox agent now runs QuickFix. [Open @orderfix-ai](https://asi1.ai/ai/agent1qdhv4kkryldes33rtzvpr6uznhdup5tdz9apfthxw7r7r8jv930ccrqspns) and send `quickfix show my orders`. The [new shared ASI:One conversation](https://asi1.ai/shared-chat/56e03728-b610-4698-b18e-8f250451fb5b) demonstrates order selection, an exact approval, cancellation, a simulated INR 349 refund and two captured receipts. The public [407-test run passed](https://github.com/Deepak-18-hub/orderfix-ai/actions/runs/40077127283). Keep the laptop awake, connected and the judging process running; cloud hosting remains deferred.
+
+![QuickFix simulated refund and captured receipt statuses in ASI:One](assets/quickfix-live-status.png)
+
+**Evidence boundary:** the older shared chat, video and deployment verification below belong to the original return-request workflow. The new chat above demonstrates the QuickFix simulation, not connected teammate agents or a real payment gateway. A fresh 3–5 minute video is still required for this extension. The [current hackpack](https://www.fetch.ai/events/hackathons/fetch-a-thon-3/hackpack) requires submission through its ASI:One dashboard's **Project Submission Agent**.
 
 ## Original OrderFix return-request workflow
 

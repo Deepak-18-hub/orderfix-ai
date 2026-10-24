@@ -14,7 +14,7 @@ payment/refund and notification outcomes independently.
 | Gateway | Local simulated payment/refund ledger; optional Razorpay test adapter needs private credentials and a real captured test payment |
 | Email | Persistent English/Hindi/Kannada captures; no email account or real recipient is configured |
 | Teammate mail agent | Being built; address and compatible responses are pending |
-| ASI:One evidence | Existing OrderFix evidence covers the earlier return-request workflow only |
+| ASI:One evidence | New QuickFix simulation verified live on 24 October 2026; shared conversation linked below |
 
 The local peer service and protocol tests require no paid API, ASI1 key, pharmacy
 account, email account or Razorpay credential. No money moves and captured email
@@ -69,9 +69,8 @@ the original ACP handler with background result cards.
 
 Open the existing OrderFix ASI:One chat and say **quickfix show my orders**.
 Choose a card, review it, then approve. Keep this process, the laptop and its
-network online. This launch path has construction tests; a fresh end-to-end
-ASI:One run of the extension has not yet been recorded. Do not describe its
-local peers as the connected teammate agents.
+network online. The English cancellation/refund simulation was verified live
+through ASI:One. Do not describe its local peers as the connected teammate agents.
 
 For a connected pharmacy/mail and Razorpay test setup, use `orderfix.agent`
 with the configuration below instead of the simulation-only judging launcher.
@@ -163,6 +162,8 @@ An accepted synthetic order can demonstrate cancellation; a dispatched one must
 be rejected by policy. Repeated confirmation and a restart/status check should
 preserve the same outcome. Mail failure must not trigger another refund.
 
-A fresh shared ASI:One conversation and new demo video are still required before
-claiming this workflow publicly. The earlier shared conversation and MP4 are
-valid evidence for the original return-request project only.
+The [new shared ASI:One conversation](https://asi1.ai/shared-chat/56e03728-b610-4698-b18e-8f250451fb5b)
+verifies the deployed English QuickFix simulation. Start with `quickfix show my
+orders` through the existing public handle. Keep the judging process running,
+the laptop awake and its network connected. A new demo video remains pending;
+the earlier MP4 demonstrates the original return-request project only.
